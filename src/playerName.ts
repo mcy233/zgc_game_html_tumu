@@ -384,7 +384,7 @@ export function buildRandomOfficeRoom(): string {
  */
 export function buildEmailFromDisplayName(name: string): string {
   const t = name.trim().replace(/\s+/g, '');
-  if (!t) return `phd.${Math.floor(Math.random() * 1e9).toString(36)}@baz.edu.cn`;
+  if (!t) return `staff.${Math.floor(Math.random() * 1e9).toString(36)}@cscec-proj.com`;
   const first = t[0]!;
   const si = (SURNAMES as readonly string[]).indexOf(first);
   const sur = si >= 0 ? SURNAME_PINYIN[si]! : `u${(first.codePointAt(0)! >>> 0).toString(36)}`;
@@ -396,7 +396,7 @@ export function buildEmailFromDisplayName(name: string): string {
     const gi = (GIVEN_NAMES as readonly string[]).indexOf(rest);
     given = gi >= 0 ? GIVEN_SLUG[gi]! : `g${hashChineseSlug(rest)}`;
   }
-  return `${given}.${sur}@baz.edu.cn`.toLowerCase();
+  return `${given}.${sur}@cscec-proj.com`.toLowerCase();
 }
 
 export type PlayerRunIdentity = {
@@ -412,7 +412,7 @@ export function generatePlayerRunIdentity(): PlayerRunIdentity {
   const gi = Math.floor(rnd() * GIVEN_NAMES.length);
   const playerName = SURNAMES[si]! + GIVEN_NAMES[gi]!;
   const local = `${GIVEN_SLUG[gi]}.${SURNAME_PINYIN[si]}`.toLowerCase();
-  const playerContactEmail = `${local}@baz.edu.cn`;
+  const playerContactEmail = `${local}@cscec-proj.com`;
   const playerOfficeRoom = buildRandomOfficeRoom();
 
   return { playerName, playerContactEmail, playerOfficeRoom };
