@@ -59,6 +59,8 @@ import type { MinigameConfig, MinigameResult } from './systems/minigame/types';
 import { gameAudioBus } from './systems/audio/AudioManager';
 import { useGameAudio } from './systems/audio/useGameAudio';
 import { useTheme } from './systems/theme/useTheme';
+import { pickActionScenario, type ActionScenario, type ScenarioChoice } from './data/actionScenarios';
+import { ActionScenarioModal } from './components/modals/ActionScenarioModal';
 
 type FloatStatSnapshot = {
   morale: number;
@@ -104,6 +106,10 @@ export default function App() {
   const [pendingActionForMinigame, setPendingActionForMinigame] = useState<Action | null>(null);
   const pendingMinigameActionRef = useRef<Action | null>(null);
 
+  const [activeScenario, setActiveScenario] = useState<ActionScenario | null>(null);
+  const [scenarioActionLabel, setScenarioActionLabel] = useState('');
+  const pendingScenarioActionRef = useRef<Action | null>(null);
+
   const clearMinigameSession = useCallback(() => {
     pendingMinigameActionRef.current = null;
     setPendingActionForMinigame(null);
@@ -111,6 +117,13 @@ export default function App() {
   }, []);
 
   const interceptActionExecution = useCallback<ActionExecutionInterceptor>((action, _run) => {
+    const scenario = pickActionScenario(action.id);
+    if (scenario) {
+      pendingScenarioActionRef.current = action;
+      setScenarioActionLabel(action.label);
+      setActiveScenario(scenario);
+      return true;
+    }
     if (!isFeatureEnabled('enableMinigames')) return false;
     const config = getMinigameForAction(action.id);
     if (!config) return false;
@@ -132,6 +145,24 @@ export default function App() {
     setProjectScore,
     interceptActionExecution
   );
+
+  const onScenarioChoose = useCallback((choice: ScenarioChoice) => {
+    const a = pendingScenarioActionRef.current;
+    setActiveScenario(null);
+    pendingScenarioActionRef.current = null;
+    if (!a) return;
+    const mod: Record<string, unknown> = { ...a };
+    for (const [key, delta] of Object.entries(choice.modifiers)) {
+      const current = mod[key];
+      if (typeof current === 'number') {
+        mod[key] = current + (delta as number);
+      } else if (current === undefined && typeof delta === 'number') {
+        mod[key] = delta;
+      }
+    }
+    mod.description = choice.narrative;
+    handlers.handleAction(mod as unknown as Action, true, { skipIntercept: true });
+  }, [handlers]);
 
   const onMinigameSkip = useCallback(() => {
     const a = pendingMinigameActionRef.current;
@@ -555,6 +586,13 @@ export default function App() {
         onCloseSettings={() => setShowSettingsShell(false)}
         showLLMSettings={modals.showLLMSettings}
         onCloseLLM={() => modals.setShowLLMSettings(false)}
+      />
+
+      <ActionScenarioModal
+        open={!!activeScenario}
+        scenario={activeScenario}
+        actionLabel={scenarioActionLabel}
+        onChoose={onScenarioChoose}
       />
 
       <MinigameHost config={activeMinigame} onComplete={onMinigameComplete} onSkip={onMinigameSkip} />
