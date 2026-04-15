@@ -5,14 +5,14 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 const STORAGE_KEY = 'theme';
 
 function readStoredMode(): ThemeMode {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') return 'dark';
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === 'light' || raw === 'dark' || raw === 'system') return raw;
   } catch {
     /* ignore */
   }
-  return 'light';
+  return 'dark';
 }
 
 function getSystemTheme(): 'light' | 'dark' {
