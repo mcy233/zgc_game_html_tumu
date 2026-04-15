@@ -141,6 +141,16 @@ export function CenterMainPanel({
             >
               {activeTab === 'TEAM' && (
                 <div className="flex flex-col gap-4">
+                  {state.project.coworkers.some(c => c.favor >= 100) && (
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 px-4 py-3 rounded-2xl border border-emerald-100 dark:border-emerald-800/30">
+                      <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1">
+                        满好感工友福利
+                      </p>
+                      <p className="text-[10px] text-emerald-700/80 dark:text-emerald-400/80">
+                        {state.project.coworkers.filter(c => c.favor >= 100).map(c => c.name).join('、')} 好感已满，下季度结算时额外获得 心态+5、体力+5、精力+5（每人）。
+                      </p>
+                    </div>
+                  )}
                   <div
                     id="onb-team-advisor-card"
                     className="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-black/5 dark:border-white/10 space-y-3"
@@ -273,7 +283,14 @@ export function CenterMainPanel({
                       className="group bg-white dark:bg-gray-800 p-5 rounded-2xl border border-black/5 dark:border-white/10 shadow-sm text-left flex justify-between gap-3 hover:border-black dark:hover:border-white/30 transition-all disabled:opacity-35"
                     >
                       <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-base text-gray-900 dark:text-gray-100">{action.label}</h4>
+                        <h4 className="font-bold text-base text-gray-900 dark:text-gray-100">
+                          {action.label}
+                          {action.hidden && (
+                            <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 align-middle font-bold">
+                              支线
+                            </span>
+                          )}
+                        </h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{action.description}</p>
                         {action.strategyHint && (
                           <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-1">
@@ -295,6 +312,16 @@ export function CenterMainPanel({
                         {action.materialsCost > 0 && (
                           <span className="text-[10px] font-mono bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 px-2 py-0.5 rounded-md flex items-center gap-1">
                             <Boxes size={10} /> {action.materialsCost}
+                          </span>
+                        )}
+                        {action.materialsCost < 0 && (
+                          <span className="text-[10px] font-mono bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <Boxes size={10} /> +{-action.materialsCost}
+                          </span>
+                        )}
+                        {action.safetyRiskChange != null && action.safetyRiskChange < 0 && (
+                          <span className="text-[10px] font-mono bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300 px-2 py-0.5 rounded-md">
+                            安全 {action.safetyRiskChange}
                           </span>
                         )}
                         {action.progressGain > 0 && (

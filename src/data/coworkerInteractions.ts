@@ -166,4 +166,81 @@ export const COWORKER_INTERACTIONS: CoworkerInteraction[] = [
     ],
     effect: { progress: 9, planProgress: 3, energy: -14, coworkerApproval: 10 },
   },
+  {
+    id: 'cw_morning_exercise',
+    label: '晨跑锻炼',
+    description: '六点天没亮，你被工友拉出被窝绕工地跑三圈。',
+    texts: [
+      '跑完你气喘吁吁，他一脸嫌弃：「才三圈就这样？钢筋工都比你能跑。」',
+      '清晨的工地意外安静，只有鸟叫和你的喘息声——片刻的平静，很珍贵。',
+      '你发誓明天还来，但闹钟响的时候你按了静音——真香定律在工地也适用。',
+    ],
+    effect: { stamina: 15, morale: 8, energy: -8, coworkerApproval: 5 },
+  },
+  {
+    id: 'cw_phone_repair',
+    label: '帮忙修手机',
+    description: '工友的手机掉进搅拌桶溅了泥浆，你被当成IT专家。',
+    texts: [
+      '你拿纸巾擦了十分钟，重启后居然能用了。工友看你的眼神像看神仙。',
+      '「你是学土木的还是学修手机的？」你说都不是，你是学百度的。',
+      '修好之后他非要请你喝奶茶，你觉得这可能是工地上性价比最高的社交投资。',
+    ],
+    effect: { morale: 6, coworkerApproval: 12, energy: -5 },
+  },
+  {
+    id: 'cw_teach_bim',
+    label: '教工友用软件',
+    description: '你教他用BIM出图、用WPS做表，他教你看现场。公平交易。',
+    texts: [
+      '他学Excel用了三小时，学会的第一个函数是SUM。你说够了，这比很多领导强。',
+      '教完Revit基本操作后他问：「这个能打游戏吗？」你沉默三秒：「理论上……」',
+      '他很快超过你预期：不到一周就会自己出截面图了。你的教学成就感比发论文还强。',
+    ],
+    effect: { progress: 4, reputation: 3, coworkerApproval: 10, energy: -12 },
+  },
+  {
+    id: 'cw_night_market',
+    label: '逛夜市',
+    description: '下班后骑电动车去附近夜市，油炸味混着方言吆喝，是打工人的充电站。',
+    texts: [
+      '你买了一份炒粉，他买了一份卤味，坐马路牙子上吃得很认真——这叫工地米其林路边分店。',
+      '夜市老板问你们「是不是那个工地的」，你点头。他多给了一串烤肉：「辛苦了。」',
+      '逛完回去路过工地，塔吊的灯还亮着。你说「看，那就是我们盖的楼」，语气里有一点骄傲。',
+    ],
+    effect: { morale: 15, stamina: 5, salary: -80, coworkerApproval: 8, energy: -5 },
+  },
+  {
+    id: 'cw_complain_session',
+    label: '集体吐槽大会',
+    description: '几个人围坐板房吐槽甲方、监理、天气、食堂，把负能量转化为战斗力。',
+    texts: [
+      '有人说甲方变更像呼吸一样自然，你补一句「而且同样无法拒绝」，笑声快掀翻屋顶。',
+      '吐槽完食堂的菜，所有人达成共识：最难吃的是周四的回锅肉。这是项目部唯一的全票通过。',
+      '骂完之后大家精神抖擞去上工了——负能量排毒，效果不亚于spa。',
+    ],
+    effect: { morale: 12, energy: 5, coworkerApproval: 6 },
+  },
+  {
+    id: 'cw_photo_session',
+    label: '帮忙拍工程照',
+    description: '隐蔽验收前需要影像资料，你被拉去当摄影师。',
+    texts: [
+      '你蹲着拍了三十张钢筋绑扎照，姿势比婚纱摄影师还专业——不同的是背景是泥。',
+      '他说「拍清楚点，监理要看」，你默默开了HDR：这是对规范条文的尊重。',
+      '拍完他检查照片，指着一张说「这个角度不错」。你觉得，土木摄影也算一门艺术吧。',
+    ],
+    effect: { progress: 3, coworkerApproval: 8, energy: -8, morale: 3 },
+  },
+  {
+    id: 'cw_birthday_surprise',
+    label: '给工友过生日',
+    description: '项目部唯一的仪式感——蛋糕、蜡烛、安全帽生日歌。',
+    texts: [
+      '蛋糕是路边店买的，蜡烛是从食堂偷的，但唱歌的时候所有人都很认真。',
+      '寿星许愿：「希望今年项目不延期。」你们鼓掌——这比「世界和平」实际多了。',
+      '吃完蛋糕还有半小时就上工，你们用安全帽当碗分蛋糕，监理看到估计要写整改。',
+    ],
+    effect: { morale: 18, salary: -200, coworkerApproval: 15, energy: -5 },
+  },
 ];

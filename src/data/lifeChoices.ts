@@ -19,8 +19,8 @@ export const LIFE_CHOICES: LifeChoice[] = [
   {
     id: 'civil_servant',
     label: '考公上岸',
-    description: '备考公务员，从此朝九晚五，告别日晒雨淋。需要一定的证书储备和存款。',
-    conditions: { minCertificates: 20, minSalary: 50000, minCivilExamPrep: 20 },
+    description: '备考公务员，行测申论过线即上岸。从此朝九晚五，告别日晒雨淋。',
+    conditions: { minSalary: 50000, minCivilExamPrep: 20 },
     isEnding: true,
     endingType: 'CIVIL_SERVANT',
   },
@@ -43,8 +43,8 @@ export const LIFE_CHOICES: LifeChoice[] = [
   {
     id: 'grad_school',
     label: '考研深造',
-    description: '重返校园读研究生。暂离工地两个项目周期后回来，职级 +1。',
-    conditions: { maxStage: 1, minCertificates: 15, minGradExamPrep: 15 },
+    description: '政治英语数学专业课，笔试过线面试通过即录取。重返校园读研，暂离工地后回来职级 +1。',
+    conditions: { maxStage: 1, minGradExamPrep: 15 },
     isEnding: false,
     endingType: 'GRAD_SCHOOL',
   },

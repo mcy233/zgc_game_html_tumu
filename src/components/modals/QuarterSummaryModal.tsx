@@ -1,9 +1,76 @@
 import { motion } from 'motion/react';
 import { Calendar } from 'lucide-react';
 import type { GameState } from '../../types/index';
-import { weatherDescription } from '../../engine/weatherSystem';
+import { weatherDescription, getWeatherProgressModifier, getWeatherStaminaModifier } from '../../engine/weatherSystem';
 import { ownerSatisfactionLabel } from '../../engine/ownerSystem';
 import { fmtNum } from '../../utils/format';
+import { InfoTip } from '../ui/InfoTip';
+
+type TipLine = { label: string; value: string; color?: string };
+
+function buildSatisfactionTip(state: GameState): TipLine[] {
+  const p = state.project;
+  const lines: TipLine[] = [];
+  lines.push({ label: '基础值', value: `${fmtNum(p.ownerSatisfaction)}` });
+
+  if (p.progress > 80) {
+    lines.push({ label: '进度>80%', value: '+5/季', color: 'text-emerald-600 dark:text-emerald-400' });
+  } else if (p.progress > 60) {
+    lines.push({ label: '进度>60%', value: '+2/季', color: 'text-emerald-600 dark:text-emerald-400' });
+  }
+  if (state.safetyRisk > 80) {
+    lines.push({ label: '安全隐患>80', value: '-8/季', color: 'text-rose-600 dark:text-rose-400' });
+  } else if (state.safetyRisk > 50) {
+    lines.push({ label: '安全隐患>50', value: '-3/季', color: 'text-rose-600 dark:text-rose-400' });
+  }
+  if (p.completedSections > 0) {
+    lines.push({ label: `已完工分项(${p.completedSections})`, value: `+${p.completedSections}/季`, color: 'text-emerald-600 dark:text-emerald-400' });
+  }
+  if (state.reputation > 60) {
+    lines.push({ label: '口碑>60', value: '+1/季', color: 'text-emerald-600 dark:text-emerald-400' });
+  }
+  lines.push({ label: '满意度奖金', value: p.ownerSatisfaction >= 90 ? '+¥2,000' : p.ownerSatisfaction >= 70 ? '+¥1,000' : p.ownerSatisfaction >= 50 ? '+¥500' : p.ownerSatisfaction < 30 ? '-¥500' : '¥0' });
+  return lines;
+}
+
+function buildWeatherTip(state: GameState): TipLine[] {
+  const w = state.project.weather;
+  const progMod = getWeatherProgressModifier(w);
+  const stamMod = getWeatherStaminaModifier(w);
+  const lines: TipLine[] = [];
+  lines.push({ label: '当前天气', value: w });
+  const progPct = Math.round((progMod - 1) * 100);
+  lines.push({
+    label: '室外进度效率',
+    value: progPct >= 0 ? `+${progPct}%` : `${progPct}%`,
+    color: progPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
+  });
+  const stamPct = Math.round((stamMod - 1) * 100);
+  if (stamPct > 0) {
+    lines.push({ label: '室外体力消耗', value: `+${stamPct}%`, color: 'text-rose-600 dark:text-rose-400' });
+  }
+  lines.push({ label: '影响范围', value: '仅室外行动', color: 'text-gray-500 dark:text-gray-400' });
+  if (w === '大雨' || w === '大风' || w === '寒潮' || w === '高温') {
+    lines.push({ label: '⚠ 赶工加班', value: '额外+安全隐患', color: 'text-rose-600 dark:text-rose-400' });
+  }
+  return lines;
+}
+
+function buildRecoveryTip(state: GameState): TipLine[] {
+  const maxFavor = state.project.coworkers.filter(c => c.favor >= 100).length;
+  const lines: TipLine[] = [
+    { label: '心态自然恢复', value: '+10', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: '体力自然恢复', value: '+10', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: '精力自然恢复', value: '+20', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: '经验自然积累', value: '+5', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: '物资基础补给', value: '+400', color: 'text-blue-600 dark:text-blue-400' },
+  ];
+  if (maxFavor > 0) {
+    lines.push({ label: `满好感工友(×${maxFavor})`, value: `心态/体力/精力 各+${maxFavor * 5}`, color: 'text-emerald-600 dark:text-emerald-400' });
+  }
+  lines.push({ label: '⚠ 精力不再重置', value: '上季度剩余+20', color: 'text-amber-600 dark:text-amber-400' });
+  return lines;
+}
 
 export interface PaperReviewDetail {
   submitted: number;
@@ -15,7 +82,8 @@ export interface PaperReviewDetail {
 export interface QuarterSummaryModalProps {
   state: GameState;
   paperReviewDetail: PaperReviewDetail | null;
-  mainTaskHtml: string | null;
+  projectHintHtml: string | null;
+  careerHintHtml: string | null;
   onClose: () => void;
   effectStatLabel: (key: string) => string;
   formatEffectDisplayValue: (val: number) => string;
@@ -24,7 +92,8 @@ export interface QuarterSummaryModalProps {
 export function QuarterSummaryModal({
   state,
   paperReviewDetail,
-  mainTaskHtml,
+  projectHintHtml,
+  careerHintHtml,
   onClose,
   effectStatLabel,
   formatEffectDisplayValue,
@@ -57,21 +126,36 @@ export function QuarterSummaryModal({
             <p className="text-[10px] font-mono uppercase tracking-wider text-slate-600 dark:text-gray-400">
               本季天气与甲方态度
             </p>
-            <p className="text-sm text-slate-900 dark:text-gray-100 leading-relaxed">{weatherDescription(p.weather)}</p>
+            <p className="text-sm text-slate-900 dark:text-gray-100 leading-relaxed">
+              {weatherDescription(p.weather)}
+              <InfoTip lines={buildWeatherTip(state)} title="天气对行动的影响" size={13} />
+            </p>
             <p className="text-xs text-slate-700 dark:text-gray-300 leading-relaxed border-t border-slate-200/80 dark:border-gray-700 pt-2">
               <span className="font-semibold text-slate-800 dark:text-gray-200">甲方满意度</span>{' '}
               <span className="font-mono tabular-nums">{fmtNum(p.ownerSatisfaction)}</span>/100 —{' '}
               {ownerSatisfactionLabel(p.ownerSatisfaction)}
+              <InfoTip lines={buildSatisfactionTip(state)} title="满意度计算明细" size={13} />
             </p>
           </div>
-          {mainTaskHtml ? (
-            <div className="rounded-2xl border border-indigo-100 dark:border-indigo-800/60 bg-indigo-50/70 dark:bg-indigo-950/40 p-4">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-indigo-700/85 dark:text-indigo-300/90 mb-2">
-                本季主线提示
+          {projectHintHtml ? (
+            <div className="rounded-2xl border border-emerald-100 dark:border-emerald-800/60 bg-emerald-50/70 dark:bg-emerald-950/40 p-4">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-emerald-700/85 dark:text-emerald-300/90 mb-2">
+                工地建设进展
               </p>
               <p
                 className="text-sm text-gray-800 dark:text-gray-300 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: mainTaskHtml }}
+                dangerouslySetInnerHTML={{ __html: projectHintHtml }}
+              />
+            </div>
+          ) : null}
+          {careerHintHtml ? (
+            <div className="rounded-2xl border border-indigo-100 dark:border-indigo-800/60 bg-indigo-50/70 dark:bg-indigo-950/40 p-4">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-indigo-700/85 dark:text-indigo-300/90 mb-2">
+                个人职业发展
+              </p>
+              <p
+                className="text-sm text-gray-800 dark:text-gray-300 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: careerHintHtml }}
               />
             </div>
           ) : null}
@@ -169,9 +253,31 @@ export function QuarterSummaryModal({
                 ) : null}
               </div>
             ))}
-            <div className="border-t border-black/5 dark:border-white/10 pt-2 flex justify-between text-xs font-mono font-bold dark:text-gray-100">
-              <span>班后精力回满</span>
-              <span className="text-amber-600 dark:text-amber-500">重置为满格</span>
+            <div className="border-t border-black/5 dark:border-white/10 pt-2 flex flex-col gap-1.5">
+              <p className="text-[10px] font-mono uppercase opacity-40 dark:opacity-50 dark:text-gray-500 mb-0.5">
+                季度自然恢复
+                <InfoTip lines={buildRecoveryTip(state)} title="季度恢复机制说明" size={12} />
+              </p>
+              <div className="flex justify-between text-xs font-mono dark:text-gray-300">
+                <span>心态</span>
+                <span className="text-emerald-600 dark:text-emerald-400">+10</span>
+              </div>
+              <div className="flex justify-between text-xs font-mono dark:text-gray-300">
+                <span>体力</span>
+                <span className="text-emerald-600 dark:text-emerald-400">+10</span>
+              </div>
+              <div className="flex justify-between text-xs font-mono dark:text-gray-300">
+                <span>精力</span>
+                <span className="text-emerald-600 dark:text-emerald-400">+20</span>
+              </div>
+              {p.coworkers.filter(c => c.favor >= 100).length > 0 && (
+                <div className="flex justify-between text-xs font-mono dark:text-gray-300 pt-1 border-t border-black/5 dark:border-white/5">
+                  <span>满好感工友 ×{p.coworkers.filter(c => c.favor >= 100).length}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">
+                    心态/体力/精力 各+{p.coworkers.filter(c => c.favor >= 100).length * 5}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

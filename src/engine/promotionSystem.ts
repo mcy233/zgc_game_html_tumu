@@ -1,6 +1,7 @@
 import type { GameState, CareerEvent, CareerTrack } from '../types/index';
 import { CAREER_STAGES, getCareerTitle, meetsPromotionRequirements } from '../data/careerPaths';
 import { MAX_CAREER_STAGE } from '../config/gameConfig';
+import { getCompletedCertIds } from '../data/certificateRegistry';
 
 /** Target stage after promotion (1–4); narratives keyed by this, not current intern stage */
 type PromotionTargetStage = 1 | 2 | 3 | 4;
@@ -32,6 +33,8 @@ export function checkPromotionEligibility(state: GameState): PromotionCheckResul
 
   const { met, missing } = meetsPromotionRequirements(nextStage, {
     certificates: state.certificates,
+    completedCertIds: getCompletedCertIds(state.certProgress),
+    careerTrack: state.careerTrack,
     reputation: state.reputation,
     experience: state.experience,
     totalCompletedSections: state.project.completedSections + (state.totalProjectsCompleted > 0 ? state.totalProjectsCompleted * 3 : 0),

@@ -1,8 +1,10 @@
 import type { GameState, Moment } from '../types/index';
 import type { BossInteractionEffect } from '../data/bossInteractions';
 import type { CoworkerInteractionEffect } from '../data/coworkerInteractions';
-import { getCareerTitle } from '../data/careerPaths';
+import { getCareerTitle, meetsPromotionRequirements } from '../data/careerPaths';
 import { phaseLabel } from '../data/projectTemplates';
+import { getCompletedCertIds } from '../data/certificateRegistry';
+import { MAX_CAREER_STAGE } from '../config/gameConfig';
 
 export const PM_NAMES = ['周铁军', '吴立柱', '郑标高', '王节点', '冯浇筑', '陈验筋'];
 
@@ -97,21 +99,50 @@ export function seedCoworkers(q: number): GameState['project']['coworkers'] {
   ];
 }
 
-/** Main task hint for the current project phase */
-export function mainTaskHintHtml(s: GameState): string | null {
-  const title = getCareerTitle(s.careerTrack, s.careerStage);
+/** Project construction hint for the current phase */
+export function projectHintHtml(s: GameState): string | null {
   const phaseName = phaseLabel(s.project.phase);
+  const prog = Math.round(s.project.progress);
+  const sections = s.project.completedSections;
 
-  switch (s.project.phase) {
-    case 'PREP':
-      return `<strong class="text-indigo-700">${title}</strong> · ${phaseName}阶段：做好安全培训、熟悉图纸、准备开工资料。`;
-    case 'FOUNDATION':
-      return `<strong class="text-indigo-700">${title}</strong> · ${phaseName}阶段：基础施工是关键，注意地质风险和安全管理。`;
-    case 'MAIN':
-      return `<strong class="text-indigo-700">${title}</strong> · ${phaseName}阶段：主体结构冲刺，盯进度、抓质量、控安全。`;
-    case 'FINISHING':
-      return `<strong class="text-indigo-700">${title}</strong> · ${phaseName}阶段：收尾验收在即，资料闭合和整改是重点。`;
+  const phaseDesc: Record<string, string> = {
+    PREP: '做好安全培训、熟悉图纸、准备开工资料。',
+    FOUNDATION: '基础施工是关键，注意地质风险和安全管理。',
+    MAIN: '主体结构冲刺，盯进度、抓质量、控安全。',
+    FINISHING: '收尾验收在即，资料闭合和整改是重点。',
+  };
+
+  return `<strong class="text-emerald-700 dark:text-emerald-400">${s.project.name}</strong> · ${phaseName}阶段（进度 ${prog}%）<br/>${phaseDesc[s.project.phase] ?? ''}<br/><span class="text-[11px] opacity-70">已完工分项：${sections} 项 | 待审分项：${s.project.submittedSections} 项</span>`;
+}
+
+/** Career development hint */
+export function careerHintHtml(s: GameState): string | null {
+  const title = getCareerTitle(s.careerTrack, s.careerStage);
+  const nextStage = s.careerStage + 1;
+
+  if (nextStage > MAX_CAREER_STAGE) {
+    return `<strong class="text-indigo-700 dark:text-indigo-400">${title}</strong>（最高职级）<br/><span class="text-[11px] opacity-70">已到达职业巅峰，继续积累行业声望。</span>`;
   }
+
+  const nextTitle = getCareerTitle(s.careerTrack, nextStage);
+  const { met, missing } = meetsPromotionRequirements(nextStage, {
+    certificates: s.certificates,
+    completedCertIds: getCompletedCertIds(s.certProgress),
+    careerTrack: s.careerTrack,
+    reputation: s.reputation,
+    experience: s.experience,
+    totalCompletedSections: s.project.completedSections + (s.totalProjectsCompleted > 0 ? s.totalProjectsCompleted * 3 : 0),
+    ownerSatisfaction: s.project.ownerSatisfaction,
+    bossApproval: s.project.bossApproval,
+    networkValue: s.networkValue,
+  });
+
+  if (met) {
+    return `<strong class="text-indigo-700 dark:text-indigo-400">${title}</strong> → 下一步：<strong>${nextTitle}</strong><br/><span class="text-emerald-600 dark:text-emerald-400 font-bold">✓ 已满足晋升条件！</span> 等待年度考核时晋升。`;
+  }
+
+  const missingHtml = missing.slice(0, 3).map(m => `<span class="text-rose-600 dark:text-rose-400">✗ ${m}</span>`).join('　');
+  return `<strong class="text-indigo-700 dark:text-indigo-400">${title}</strong> → 下一步：<strong>${nextTitle}</strong><br/>${missingHtml}${missing.length > 3 ? `　<span class="opacity-50">+${missing.length - 3}项</span>` : ''}`;
 }
 
 export function makePeerMoment(s: GameState): Moment {

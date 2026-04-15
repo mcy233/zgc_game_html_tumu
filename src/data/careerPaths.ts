@@ -2,25 +2,22 @@ import type { CareerTrack } from '../types/index';
 
 export interface StageDefinition {
   stage: number; // 0=intern, 1=regular, 2=lead, 3=manager, 4=executive
-  titleByTrack: Record<CareerTrack, string>; // Chinese job title per track
+  titleByTrack: Record<CareerTrack, string>;
   /** Promotion requirements to reach THIS stage (stage 0 has none) */
   promotionRequirements?: {
-    minCertificates?: number;
+    /** Specific certificate IDs required (by track; fallback to 'ALL' if track not specified) */
+    requiredCerts?: Partial<Record<CareerTrack | 'ALL', string[]>>;
     minReputation?: number;
     minExperience?: number;
-    minCompletedSections?: number; // total across all projects
-    minOwnerSatisfaction?: number; // current project
-    minBossApproval?: number; // current project
-    minReviews?: number; // lifetime industry reviews
+    minCompletedSections?: number;
+    minOwnerSatisfaction?: number;
+    minBossApproval?: number;
+    minReviews?: number;
     minNetwork?: number;
   };
-  /** Base quarterly salary for this stage */
   baseSalary: number;
-  /** Actions per quarter at this stage */
   actionsPerQuarter: number;
-  /** Description of role at this stage */
   descriptionByTrack: Record<CareerTrack, string>;
-  /** Failure risk at this stage */
   failureRiskByTrack: Record<CareerTrack, string>;
 }
 
@@ -53,7 +50,7 @@ export const CAREER_STAGES: StageDefinition[] = [
       BIZ: '商务员',
     },
     promotionRequirements: {
-      minCertificates: 12,
+      requiredCerts: { ALL: ['safety_c'] },
       minBossApproval: 55,
       minExperience: 80,
     },
@@ -78,7 +75,11 @@ export const CAREER_STAGES: StageDefinition[] = [
       BIZ: '商务主管',
     },
     promotionRequirements: {
-      minCertificates: 20,
+      requiredCerts: {
+        TECH: ['safety_c', 'constructor_2'],
+        BUILD: ['safety_c', 'constructor_2'],
+        BIZ: ['safety_c', 'cost_engineer'],
+      },
       minReputation: 45,
       minExperience: 250,
       minCompletedSections: 3,
@@ -105,7 +106,11 @@ export const CAREER_STAGES: StageDefinition[] = [
       BIZ: '项目商务经理',
     },
     promotionRequirements: {
-      minCertificates: 28,
+      requiredCerts: {
+        TECH: ['constructor_1', 'safety_engineer'],
+        BUILD: ['constructor_1'],
+        BIZ: ['cost_engineer', 'constructor_2'],
+      },
       minReputation: 65,
       minExperience: 600,
       minCompletedSections: 8,
@@ -133,6 +138,11 @@ export const CAREER_STAGES: StageDefinition[] = [
       BIZ: '公司商务总监',
     },
     promotionRequirements: {
+      requiredCerts: {
+        TECH: ['constructor_1', 'senior_engineer'],
+        BUILD: ['constructor_1', 'safety_engineer'],
+        BIZ: ['cost_engineer', 'constructor_1'],
+      },
       minReputation: 80,
       minExperience: 1200,
       minCompletedSections: 15,
@@ -169,6 +179,8 @@ export function meetsPromotionRequirements(
   targetStage: number,
   stats: {
     certificates: number;
+    completedCertIds: string[];
+    careerTrack: CareerTrack;
     reputation: number;
     experience: number;
     totalCompletedSections: number;
@@ -181,19 +193,39 @@ export function meetsPromotionRequirements(
   if (!def || !def.promotionRequirements) return { met: true, missing: [] };
   const req = def.promotionRequirements;
   const missing: string[] = [];
-  if (req.minCertificates && stats.certificates < req.minCertificates)
-    missing.push(`资质证书 ${stats.certificates}/${req.minCertificates}`);
+
+  if (req.requiredCerts) {
+    const trackCerts = req.requiredCerts[stats.careerTrack] ?? req.requiredCerts.ALL ?? [];
+    for (const certId of trackCerts) {
+      if (!stats.completedCertIds.includes(certId)) {
+        const certName = CERT_NAME_MAP[certId] ?? certId;
+        missing.push(`需要证书：${certName}`);
+      }
+    }
+  }
   if (req.minReputation && stats.reputation < req.minReputation)
-    missing.push(`行业口碑 ${stats.reputation}/${req.minReputation}`);
+    missing.push(`行业口碑 ${Math.round(stats.reputation)}/${req.minReputation}`);
   if (req.minExperience && stats.experience < req.minExperience)
-    missing.push(`经验值 ${stats.experience}/${req.minExperience}`);
+    missing.push(`经验值 ${Math.round(stats.experience)}/${req.minExperience}`);
   if (req.minCompletedSections && stats.totalCompletedSections < req.minCompletedSections)
     missing.push(`已完工分项 ${stats.totalCompletedSections}/${req.minCompletedSections}`);
   if (req.minOwnerSatisfaction && stats.ownerSatisfaction < req.minOwnerSatisfaction)
-    missing.push(`甲方满意度 ${stats.ownerSatisfaction}/${req.minOwnerSatisfaction}`);
+    missing.push(`甲方满意度 ${Math.round(stats.ownerSatisfaction)}/${req.minOwnerSatisfaction}`);
   if (req.minBossApproval && stats.bossApproval < req.minBossApproval)
-    missing.push(`上级信任 ${stats.bossApproval}/${req.minBossApproval}`);
+    missing.push(`上级信任 ${Math.round(stats.bossApproval)}/${req.minBossApproval}`);
   if (req.minNetwork && stats.networkValue < req.minNetwork)
-    missing.push(`人脉值 ${stats.networkValue}/${req.minNetwork}`);
+    missing.push(`人脉值 ${Math.round(stats.networkValue)}/${req.minNetwork}`);
   return { met: missing.length === 0, missing };
 }
+
+const CERT_NAME_MAP: Record<string, string> = {
+  safety_c: '安全员C证',
+  constructor_2: '二级建造师',
+  constructor_1: '一级建造师',
+  quality_cert: '质量员证',
+  cost_engineer: '造价工程师',
+  surveyor_cert: '测量员证',
+  safety_engineer: '注册安全工程师',
+  bim_cert: 'BIM工程师',
+  senior_engineer: '高级工程师职称',
+};

@@ -1,6 +1,6 @@
 import type { GameState, Action, CareerTrack } from '../types/index';
 import { BOSS_PROFILES } from '../data/bossProfiles';
-import { getWeatherProgressModifier, getWeatherStaminaModifier, weatherEffectNote } from './weatherSystem';
+import { getWeatherProgressModifier, getWeatherStaminaModifier, weatherEffectNote, isHarshWeather, getHarshWeatherSafetyPenalty } from './weatherSystem';
 import { getActionsPerQuarter } from './promotionSystem';
 import { applyCertStudyPoints, countCompletedCerts, CERT_BY_ID } from '../data/certificateRegistry';
 
@@ -29,19 +29,21 @@ export function isActionAvailable(
   action: Action,
   track: CareerTrack,
   stage: number,
-  projectIndex: number
+  projectIndex: number,
+  discoveredActions?: string[]
 ): boolean {
   if (action.requiredTrack && action.requiredTrack !== track) return false;
   if (action.requiredStageMin !== undefined && stage < action.requiredStageMin) return false;
   if (action.requiredStageMax !== undefined && stage > action.requiredStageMax) return false;
   if (action.unlockedByProject !== undefined && projectIndex < action.unlockedByProject) return false;
+  if (action.hidden && !(discoveredActions ?? []).includes(action.id)) return false;
   return true;
 }
 
 /** Get all available actions for current state */
 export function getAvailableActions(actions: Action[], state: GameState): Action[] {
   return actions.filter((a) =>
-    isActionAvailable(a, state.careerTrack, state.careerStage, state.currentProjectIndex)
+    isActionAvailable(a, state.careerTrack, state.careerStage, state.currentProjectIndex, state.discoveredActions)
   );
 }
 
@@ -93,10 +95,12 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
   }
   if (state.project.bossApproval > 80) moraleCostMod *= 0.7;
 
-  const weatherProgMod =
-    action.category === 'CONSTRUCTION' ? getWeatherProgressModifier(state.project.weather) : 1;
-  const outdoorAction = action.id === 'do_construction' || action.id === 'site_inspection';
-  const weatherStamMod = outdoorAction ? getWeatherStaminaModifier(state.project.weather) : 1;
+  const OUTDOOR_ACTIONS = new Set([
+    'do_construction', 'site_inspection', 'overtime_rush', 'survey_line', 'side_hustle',
+  ]);
+  const isOutdoor = OUTDOOR_ACTIONS.has(action.id);
+  const weatherProgMod = isOutdoor ? getWeatherProgressModifier(state.project.weather) : 1;
+  const weatherStamMod = isOutdoor ? getWeatherStaminaModifier(state.project.weather) : 1;
 
   const moraleDrain = action.moraleCost * moraleCostMod;
   const staminaDrain = action.staminaCost * staminaCostMod * weatherStamMod;
@@ -165,7 +169,7 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
   if (action.id === 'visit_boss' || action.id === 'team_dinner' || action.id === 'overtime_rush') {
     newProject.bossLastInteractedQuarter = state.totalQuarters;
   }
-  if (action.id === 'team_dinner' || action.id === 'overtime_rush') {
+  if (action.id === 'team_dinner') {
     newProject.coworkers = newProject.coworkers.map((c) => ({
       ...c,
       lastInteractedQuarter: state.totalQuarters,
@@ -189,6 +193,16 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
     }
   }
 
+  if (action.id === 'site_inspection') {
+    const inspPlanDelta = Math.max(2, Math.round(3 + (Math.random() - 0.5) * 2)) * weatherProgMod;
+    newProject.planProgress = clamp(newProject.planProgress + inspPlanDelta);
+    if (newProject.planProgress >= 100) {
+      newProject.submittedSections += 1;
+      newProject.planProgress = 0;
+      planCompletedLog = '施工方案定稿！资料已打包送审。';
+    }
+  }
+
   if (action.id === 'do_construction') {
     const sitePlanDelta = Math.max(3, Math.round(5 + (Math.random() - 0.5) * 4)) * weatherProgMod;
     newProject.planProgress = clamp(newProject.planProgress + sitePlanDelta);
@@ -203,6 +217,18 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
   if (action.id === 'owner_meeting') {
     newState.reputation = clamp(newState.reputation + 8);
     newState.networkValue += 2;
+  }
+
+  if (action.id === 'side_hustle' && Math.random() < 0.3) {
+    const extraRisk = Math.floor(Math.random() * 5) + 3;
+    newState.safetyRisk = clamp(newState.safetyRisk + extraRisk);
+    logs.push(`因为分心干私活，你在本职工作上出了纰漏，安全隐患额外上升了 +${extraRisk}。`);
+  }
+
+  if (action.id === 'overtime_rush' && isHarshWeather(state.project.weather)) {
+    const penalty = getHarshWeatherSafetyPenalty(state.project.weather);
+    newState.safetyRisk = clamp(newState.safetyRisk + penalty);
+    logs.push(`⚠️ ${state.project.weather}天气强行赶工，安全隐患 +${penalty}！恶劣天气下赶工极其危险。`);
   }
 
   if (action.id === 'civil_exam_prep') {
@@ -240,6 +266,9 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
   if (writePlanSafetyHit) safetyDisplay += writePlanSafetyDelta;
   if (safetyDisplay !== 0) eventEffect.safetyRisk = safetyDisplay;
 
+  const planDelta = newProject.planProgress - state.project.planProgress + (planCompletedLog ? 100 : 0);
+  if (planDelta > 0) eventEffect.planProgress = Math.round(planDelta);
+
   if (certCompletedNames.length > 0) {
     for (const name of certCompletedNames) {
       logs.push(`恭喜！你成功考取了【${name}】！`);
@@ -250,8 +279,8 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
 
   const weatherNote = weatherEffectNote(
     state.project.weather,
-    outdoorAction,
-    action.category === 'CONSTRUCTION'
+    isOutdoor,
+    isOutdoor
   );
   const fullNarrative = weatherNote ? `${narrative}\n\n${weatherNote}` : narrative;
   logs.unshift(fullNarrative);

@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Share2, ThumbsUp } from 'lucide-react';
 import type { Moment } from '../../types/index';
 
@@ -8,6 +9,23 @@ export interface MomentListProps {
 }
 
 export function MomentList({ moments, onInteract }: MomentListProps) {
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+
+  const handleLike = useCallback(
+    (momentId: string) => {
+      onInteract(momentId);
+      setLikedIds((prev) => new Set(prev).add(momentId));
+      setTimeout(() => {
+        setLikedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(momentId);
+          return next;
+        });
+      }, 1200);
+    },
+    [onInteract]
+  );
+
   if (moments.length === 0) {
     return (
       <motion.div
@@ -65,19 +83,34 @@ export function MomentList({ moments, onInteract }: MomentListProps) {
           )}
 
           <div className="flex items-center gap-3 border-t border-black/5 dark:border-white/10 pt-2">
-            <button
-              type="button"
-              onClick={() => onInteract(moment.id)}
-              disabled={moment.hasInteracted}
-              className={`flex items-center gap-1 text-[10px] transition-all ${
-                moment.hasInteracted
-                  ? 'text-rose-500 dark:text-rose-400 font-bold'
-                  : 'text-gray-400 hover:text-black dark:hover:text-gray-100'
-              }`}
-            >
-              <ThumbsUp size={12} className={moment.hasInteracted ? 'fill-current' : ''} />{' '}
-              {moment.likes}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => handleLike(moment.id)}
+                disabled={moment.hasInteracted}
+                className={`flex items-center gap-1 text-[10px] transition-all ${
+                  moment.hasInteracted
+                    ? 'text-rose-500 dark:text-rose-400 font-bold'
+                    : 'text-gray-400 hover:text-black dark:hover:text-gray-100'
+                }`}
+              >
+                <ThumbsUp size={12} className={moment.hasInteracted ? 'fill-current' : ''} />{' '}
+                {moment.likes}
+              </button>
+              <AnimatePresence>
+                {likedIds.has(moment.id) && (
+                  <motion.span
+                    initial={{ opacity: 1, y: 0 }}
+                    animate={{ opacity: 0, y: -28 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute left-full ml-1 -top-1 text-[11px] font-bold text-rose-500 dark:text-rose-400 whitespace-nowrap pointer-events-none"
+                  >
+                    +2 心态
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </motion.div>
       ))}

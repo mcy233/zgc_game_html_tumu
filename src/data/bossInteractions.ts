@@ -99,4 +99,59 @@ export const BOSS_INTERACTIONS: BossInteraction[] = [
     ],
     effect: { materials: 400, bossApproval: 3, energy: -12, progress: 6 },
   },
+  {
+    id: 'boss_safety_drill',
+    label: '安全演练汇报',
+    description: '消防演练、高空坠落应急……经理要求你负责脚本和现场组织。',
+    texts: [
+      '你写的演练脚本被夸「比电影还紧凑」，你心想：因为预算只够拍一条。',
+      '灭火器过期被监理逮住，你和经理互看一眼——默契就是此刻一起背锅。',
+      '演练结束全员集合，经理让你总结三句话，你张口就来：「快、准、稳」，其实心里想的是「累、饿、困」。',
+    ],
+    effect: { safetyRisk: -5, reputation: 3, bossApproval: 4, energy: -15 },
+  },
+  {
+    id: 'boss_night_inspection',
+    label: '陪经理夜间巡查',
+    description: '深夜巡工地是项目经理的保留节目，你被钦点随行。',
+    texts: [
+      '手电筒照到一处钢筋没绑好，经理只说了一个字：「拍。」语气比夜风还冷。',
+      '巡完三栋楼，你的步数破两万，膝盖说它也想辞职。',
+      '他路过泵车时随口讲了一段质量事故案例，你听得后背发凉——比鬼故事管用。',
+    ],
+    effect: { progress: 4, safetyRisk: -3, bossApproval: 6, energy: -18, stamina: -5 },
+  },
+  {
+    id: 'boss_subcontractor_mediate',
+    label: '协调分包纠纷',
+    description: '两个分包队为工序搭接争得面红耳赤，经理派你先去灭火。',
+    texts: [
+      '你两边各倒一杯茶，讲了二十分钟道理，最后他们握手——其实是在比谁手劲大。',
+      '经理在远处看你调解，散场后说：「行，以后这种事你先顶。」你不确定这是表扬还是加活。',
+      '分包老板塞给你一条烟表示感谢，你婉拒了——不是因为不抽，是怕被记进台账。',
+    ],
+    effect: { morale: -5, reputation: 4, bossApproval: 8, progress: 3, energy: -12 },
+  },
+  {
+    id: 'boss_budget_review',
+    label: '成本分析汇报',
+    description: '季度成本超支预警，经理要看明细。你带着Excel和勇气去了。',
+    texts: [
+      '他指着超支那行说「解释」，你解释完他又指下一行——原来是连续剧。',
+      '汇报末尾你提了一个节约方案，经理眼睛亮了一下：「试试。」这两个字值千金。',
+      '走出办公室，你松了口气：过关了。转身看到待办里还有六项成本纠偏——放心得太早。',
+    ],
+    effect: { salary: 500, bossApproval: 5, morale: -8, energy: -14 },
+  },
+  {
+    id: 'boss_owner_complaint',
+    label: '甲方投诉善后',
+    description: '甲方代表打了经理电话投诉施工噪音，经理让你写情况说明。',
+    texts: [
+      '你在Word里反复斟酌措辞，把「施工需要」写成「已最大限度降低」，文字功底全用在甩锅上了。',
+      '经理看完你的回复函说：「措辞可以，态度不够诚恳。」你加了三句「深表歉意」。',
+      '甲方最后接受了道歉，经理拍你肩：「以后这种事你直接处理。」你又双叒升级了（被动）。',
+    ],
+    effect: { morale: -6, bossApproval: 7, reputation: 2, energy: -10 },
+  },
 ];

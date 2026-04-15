@@ -131,3 +131,7 @@ export function applyCertStudyPoints(
 export function countCompletedCerts(progress: Record<string, number>): number {
   return CERTIFICATE_REGISTRY.filter(c => (progress[c.id] ?? 0) >= c.pointsRequired).length;
 }
+
+export function getCompletedCertIds(progress: Record<string, number>): string[] {
+  return CERTIFICATE_REGISTRY.filter(c => (progress[c.id] ?? 0) >= c.pointsRequired).map(c => c.id);
+}

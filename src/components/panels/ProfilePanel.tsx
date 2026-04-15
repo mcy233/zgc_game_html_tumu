@@ -161,7 +161,7 @@ export function ProfilePanel({
                 suffix="%"
               />
             </div>
-            <div className="mt-3 space-y-3">
+            <div className="mt-3 space-y-2">
               <div id="ff-stat-plan">
                 <AnimatedStatBar
                   icon={FileText}
@@ -171,10 +171,26 @@ export function ProfilePanel({
                   suffix="%"
                 />
               </div>
+              <div className="flex items-center gap-2 text-[10px] text-purple-700/70 dark:text-purple-400/70 px-1">
+                <span>方案满100%</span>
+                <span>→</span>
+                <span>提交送审</span>
+                <span>→</span>
+                <span>季末验收</span>
+                <span>→</span>
+                <span className="font-bold">完工分项+1</span>
+              </div>
+              <div className="flex gap-3 text-[10px] px-1">
+                <span className="text-amber-700 dark:text-amber-400">
+                  待审 <span className="font-bold">{state.project.submittedSections}</span> 项
+                </span>
+                <span className="text-emerald-700 dark:text-emerald-400">
+                  已完工 <span className="font-bold">{state.project.completedSections}</span> 分项
+                </span>
+              </div>
               {state.project.submittedSections > 0 && (
                 <p className="text-[10px] font-mono text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg px-2 py-1.5">
-                  送审排队：{state.project.submittedSections}{' '}
-                  项（下季度封账时将公布监理/业主审查意见）
+                  {state.project.submittedSections} 项分项等待验收（下季度结算时公布审查结果，约52%通过率）
                 </p>
               )}
             </div>

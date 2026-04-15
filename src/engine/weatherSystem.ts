@@ -66,7 +66,7 @@ export function weatherDescription(weather: WeatherType): string {
     case '小雨':
       return '🌧️ 小雨，部分作业受影响';
     case '大雨':
-      return '⛈️ 大雨，室外作业暂停';
+      return '⛈️ 大雨，室外作业严重受阻';
     case '高温':
       return '🔥 高温预警，注意防暑';
     case '寒潮':
@@ -91,8 +91,8 @@ export function weatherEffectNote(weather: WeatherType, isOutdoor: boolean, isWo
       if (isWork) return '【天气影响】小雨天气，施工效率 -15%';
       return null;
     case '大雨':
-      if (isOutdoor) return '【天气影响】暴雨天气，施工效率 -40%，室外体力消耗 +30%。虽说室外作业暂停，但赶工加班仍会强行推进';
-      if (isWork) return '【天气影响】暴雨天气，施工效率 -40%';
+      if (isOutdoor) return '【天气影响】暴雨天气，施工效率 -40%，室外体力消耗 +30%，强行赶工将增加安全隐患';
+      if (isWork) return '【天气影响】暴雨天气，施工效率 -40%，强行赶工将增加安全隐患';
       return null;
     case '高温':
       if (isOutdoor) return '【天气影响】高温预警，施工效率 -25%，室外体力消耗 +40%';
@@ -108,6 +108,22 @@ export function weatherEffectNote(weather: WeatherType, isOutdoor: boolean, isWo
       return null;
     default:
       return null;
+  }
+}
+
+/** 恶劣天气列表：赶工加班时会增加安全隐患 */
+export function isHarshWeather(weather: WeatherType): boolean {
+  return weather === '大雨' || weather === '大风' || weather === '寒潮' || weather === '高温';
+}
+
+/** 恶劣天气下赶工的额外安全隐患值 */
+export function getHarshWeatherSafetyPenalty(weather: WeatherType): number {
+  switch (weather) {
+    case '大雨': return 8;
+    case '大风': return 6;
+    case '寒潮': return 5;
+    case '高温': return 5;
+    default: return 0;
   }
 }
 

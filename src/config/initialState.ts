@@ -73,6 +73,8 @@ export function createInitialState(track: CareerTrack = 'TECH'): GameState {
 
     assets: [],
 
+    discoveredActions: [],
+
     unlockedHonors: [],
     honorUnlockOrder: [],
     honorHomeDisplayMode: 'latest',

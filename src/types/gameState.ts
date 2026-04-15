@@ -137,6 +137,9 @@ export interface GameState {
   // --- Quarter events ---
   pendingQuarterChoice?: PendingQuarterChoice;
 
+  // --- Discovered hidden actions ---
+  discoveredActions: string[];
+
   // --- Honors ---
   unlockedHonors: string[];
   honorUnlockOrder: string[];

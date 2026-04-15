@@ -6,7 +6,7 @@ export interface ActionScenarioModalProps {
   open: boolean;
   scenario: ActionScenario | null;
   actionLabel: string;
-  onChoose: (choice: ScenarioChoice) => void;
+  onChoose: (choice: ScenarioChoice, scenario: ActionScenario) => void;
 }
 
 export function ActionScenarioModal({ open, scenario, actionLabel, onChoose }: ActionScenarioModalProps) {
@@ -44,16 +44,23 @@ export function ActionScenarioModal({ open, scenario, actionLabel, onChoose }: A
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => onChoose(choice)}
+                  onClick={() => onChoose(choice, scenario)}
                   className="group text-left p-4 rounded-2xl border border-gray-200 dark:border-gray-600 hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all"
                 >
                   <div className="flex items-start gap-3">
                     <span className="shrink-0 w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 group-hover:bg-amber-200 dark:group-hover:bg-amber-800 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-snug">
-                      {choice.label}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-snug">
+                        {choice.label}
+                      </span>
+                      {choice.hint && (
+                        <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+                          {choice.hint}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </button>
               ))}

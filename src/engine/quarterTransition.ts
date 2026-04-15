@@ -7,6 +7,7 @@ import { rollSeasonWeather, weatherQuarterNote } from './weatherSystem';
 import { updateProjectPhase, isProjectComplete, enterTransferPeriod, computeBaseQuarterProgress, checkScheduleStatus } from './projectManager';
 import { getQuarterlySalary } from './promotionSystem';
 import { isAnnualReviewQuarter, performAnnualReview, type AnnualReviewResult } from './annualReview';
+import { ACTIONS } from '../data/actions';
 
 export interface SectionReviewDetail {
   submitted: number;
@@ -210,9 +211,9 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     walksThisQuarter: 0,
     interactionsThisQuarter: [],
     pendingQuarterChoice: undefined,
-    energy: 100,
-    morale: clamp(prev.morale + reviewDelta.morale + 8),
-    stamina: clamp(prev.stamina + reviewDelta.stamina + 5),
+    energy: clamp(prev.energy + reviewDelta.energy + 20),
+    morale: clamp(prev.morale + reviewDelta.morale + 10),
+    stamina: clamp(prev.stamina + reviewDelta.stamina + 10),
     reputation: clamp(prev.reputation + reviewDelta.reputation),
     salary: Math.max(0, prev.salary + reviewDelta.salary + quarterlySalary),
     lifetimeEarnings: prev.lifetimeEarnings + quarterlySalary,
@@ -272,6 +273,19 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     message: `本季度项目基础施工推进 +${Math.round(baseProgress)}% 进度。`,
     type: 'INFO',
   });
+
+  const maxFavorCoworkers = newState.project.coworkers.filter(c => c.favor >= 100);
+  if (maxFavorCoworkers.length > 0) {
+    const buff = maxFavorCoworkers.length * 5;
+    newState.morale = Math.min(100, newState.morale + buff);
+    newState.stamina = Math.min(100, newState.stamina + buff);
+    newState.energy = Math.min(100, newState.energy + buff);
+    transitionLogs.push({
+      quarter: nextTotalQ,
+      message: `${maxFavorCoworkers.map(c => c.name).join('、')} 好感度满值！帮你顶班、请你吃饭、替你跑腿（心态 +${buff}，体力 +${buff}，精力 +${buff}）。`,
+      type: 'SUCCESS',
+    });
+  }
 
   const scheduleStatus = checkScheduleStatus(newState.project);
   if (scheduleStatus === 'BEHIND') {
@@ -432,6 +446,10 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     }
   }
 
+  const discoveryResult = checkHiddenActionDiscovery(newState, nextTotalQ);
+  newState = discoveryResult.state;
+  transitionLogs.push(...discoveryResult.logs);
+
   newState = prependLogs(newState, transitionLogs);
 
   return {
@@ -442,6 +460,39 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     isProjectComplete: projectComplete,
     annualReview,
   };
+}
+
+interface DiscoveryCondition {
+  actionId: string;
+  check: (s: GameState) => boolean;
+}
+
+const DISCOVERY_CONDITIONS: DiscoveryCondition[] = [
+  { actionId: 'civil_exam_prep', check: (s) => s.totalQuarters >= 4 && s.careerStage >= 1 && Math.random() < 0.4 },
+  { actionId: 'grad_exam_prep', check: (s) => s.totalQuarters >= 2 && s.careerStage <= 1 && Math.random() < 0.35 },
+  { actionId: 'self_learn_coding', check: (s) => s.totalQuarters >= 3 && Math.random() < 0.3 },
+  { actionId: 'mba_night_school', check: (s) => s.careerStage >= 2 && s.totalQuarters >= 8 && Math.random() < 0.5 },
+];
+
+function checkHiddenActionDiscovery(state: GameState, quarter: number): { state: GameState; logs: GameLog[] } {
+  const logs: GameLog[] = [];
+  const discovered = new Set(state.discoveredActions ?? []);
+  for (const cond of DISCOVERY_CONDITIONS) {
+    if (discovered.has(cond.actionId)) continue;
+    if (!cond.check(state)) continue;
+    const action = ACTIONS.find(a => a.id === cond.actionId);
+    if (!action) continue;
+    discovered.add(cond.actionId);
+    logs.push({
+      quarter,
+      message: action.discoveryHint ?? `你发现了新的可能性：${action.label}。`,
+      type: 'SUCCESS',
+    });
+  }
+  if (discovered.size !== (state.discoveredActions ?? []).length) {
+    return { state: { ...state, discoveredActions: [...discovered] }, logs };
+  }
+  return { state, logs };
 }
 
 function computeOwnerDelta(state: GameState): number {

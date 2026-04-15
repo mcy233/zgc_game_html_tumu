@@ -43,7 +43,7 @@ import { SiteLoginScreen } from './components/screens/SiteLoginScreen';
 import { CenterMainPanel } from './components/game/CenterMainPanel';
 import { RightFeedColumn } from './components/game/RightFeedColumn';
 import { GuideAndSettingsModals } from './components/modals/GuideAndSettingsModals';
-import { mainTaskHintHtml, pickSchool } from './app/gameFlowHelpers';
+import { projectHintHtml, careerHintHtml, pickSchool } from './app/gameFlowHelpers';
 import { buildEmailFromDisplayName, buildRandomOfficeRoom, generateRandomPlayerName } from './playerName';
 import { generateFirstProject } from './engine/projectManager';
 import { createInitialState } from './config/initialState';
@@ -102,7 +102,8 @@ export default function App() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialIndex, setTutorialIndex] = useState(0);
   const [showSettingsShell, setShowSettingsShell] = useState(false);
-  const [summaryMainTaskHtml, setSummaryMainTaskHtml] = useState<string | null>(null);
+  const [summaryProjectHtml, setSummaryProjectHtml] = useState<string | null>(null);
+  const [summaryCareerHtml, setSummaryCareerHtml] = useState<string | null>(null);
   const [showQuarterTransition, setShowQuarterTransition] = useState(false);
   const [annualReviewResult, setAnnualReviewResult] = useState<AnnualReviewResult | null>(null);
   const [activeMinigame, setActiveMinigame] = useState<MinigameConfig | null>(null);
@@ -150,7 +151,7 @@ export default function App() {
     setAnnualReviewResult
   );
 
-  const onScenarioChoose = useCallback((choice: ScenarioChoice) => {
+  const onScenarioChoose = useCallback((choice: ScenarioChoice, scenario: ActionScenario) => {
     const a = pendingScenarioActionRef.current;
     setActiveScenario(null);
     pendingScenarioActionRef.current = null;
@@ -164,7 +165,8 @@ export default function App() {
         mod[key] = delta;
       }
     }
-    mod.description = choice.narrative;
+    mod.descriptions = undefined;
+    mod.description = `${scenario.scene}\n\n你选择了「${choice.label}」——\n${choice.narrative}`;
     handlers.handleAction(mod as unknown as Action, true, { skipIntercept: true });
   }, [handlers]);
 
@@ -216,9 +218,13 @@ export default function App() {
   const summaryModalWasOpenRef = useRef(false);
   useLayoutEffect(() => {
     if (modals.isSummaryModalOpen && !summaryModalWasOpenRef.current) {
-      setSummaryMainTaskHtml(mainTaskHintHtml(state));
+      setSummaryProjectHtml(projectHintHtml(state));
+      setSummaryCareerHtml(careerHintHtml(state));
     }
-    if (!modals.isSummaryModalOpen) setSummaryMainTaskHtml(null);
+    if (!modals.isSummaryModalOpen) {
+      setSummaryProjectHtml(null);
+      setSummaryCareerHtml(null);
+    }
     summaryModalWasOpenRef.current = modals.isSummaryModalOpen;
   }, [modals.isSummaryModalOpen, state]);
 
@@ -506,7 +512,8 @@ export default function App() {
           <QuarterSummaryModal
             state={state}
             paperReviewDetail={sectionReviewDetail}
-            mainTaskHtml={summaryMainTaskHtml}
+            projectHintHtml={summaryProjectHtml}
+            careerHintHtml={summaryCareerHtml}
             onClose={handlers.closeQuarterSummary}
             effectStatLabel={effectStatLabel}
             formatEffectDisplayValue={formatEffectDisplayValue}

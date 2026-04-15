@@ -29,4 +29,8 @@ export interface Action {
   requiredStageMax?: number;
   /** Minimum project index to unlock (0-based) */
   unlockedByProject?: number;
+  /** Hidden actions require discovery via events before appearing */
+  hidden?: boolean;
+  /** Hint shown to the player upon discovering this hidden action */
+  discoveryHint?: string;
 }
