@@ -12,6 +12,7 @@ import {
   type SectionReviewDetail,
 } from '../engine/quarterTransition';
 import { computeActionEffect, canExecuteAction } from '../engine/actionHandlers';
+import { getActionsPerQuarter } from '../engine/promotionSystem';
 import { startNewProject, evaluateProject, type ProjectScore } from '../engine/projectManager';
 import { checkPromotionEligibility, applyPromotion } from '../engine/promotionSystem';
 import { computeEndingGrade } from '../engine/endingSystem';
@@ -146,14 +147,25 @@ export function useConstructionGameHandlers(
     if (a) handleAction(a, true);
   };
 
+  const checkActionQuota = (): boolean => {
+    const max = getActionsPerQuarter(stateRef.current.careerStage);
+    if (stateRef.current.actionsThisQuarter >= max) {
+      addLog(`本季度行动次数已达上限（${max} 次），请进入下一季度。`, 'WARNING');
+      return false;
+    }
+    return true;
+  };
+
   const onWorkWalk = () => {
     if (modals.isGameOver) return;
+    if (!checkActionQuota()) return;
     if (state.walksThisQuarter >= 3) {
       addLog('本季散步次数已用完。', 'WARNING');
       return;
     }
     setState((prev) => ({
       ...prev,
+      actionsThisQuarter: prev.actionsThisQuarter + 1,
       walksThisQuarter: prev.walksThisQuarter + 1,
       morale: clamp100(prev.morale + 6),
       stamina: clamp100(prev.stamina + 6),
@@ -164,12 +176,19 @@ export function useConstructionGameHandlers(
 
   const onDormRest = () => {
     if (modals.isGameOver) return;
-    setState((prev) => ({ ...prev, energy: clamp100(prev.energy + 28), morale: clamp100(prev.morale - 3) }));
+    if (!checkActionQuota()) return;
+    setState((prev) => ({
+      ...prev,
+      actionsThisQuarter: prev.actionsThisQuarter + 1,
+      energy: clamp100(prev.energy + 28),
+      morale: clamp100(prev.morale - 3),
+    }));
     addLog('板房躺平半小时，世界安静得像停工检修。', 'INFO');
   };
 
   const onOuting = () => {
     if (modals.isGameOver) return;
+    if (!checkActionQuota()) return;
     if (state.salary < 500) {
       const b = pickInsufficientSalaryBlock();
       openSoftBlockEvent(b.title, b.body);
@@ -177,6 +196,7 @@ export function useConstructionGameHandlers(
     }
     setState((prev) => ({
       ...prev,
+      actionsThisQuarter: prev.actionsThisQuarter + 1,
       salary: prev.salary - 500,
       morale: clamp100(prev.morale + 12),
       stamina: clamp100(prev.stamina + 10),
@@ -200,6 +220,7 @@ export function useConstructionGameHandlers(
 
   const runBossInteraction = () => {
     if (modals.isGameOver) return;
+    if (!checkActionQuota()) return;
     if (state.interactionsThisQuarter.includes('boss')) {
       addLog('本季与领导的互动额度已用。', 'WARNING');
       return;
@@ -209,6 +230,7 @@ export function useConstructionGameHandlers(
     let next = applyInteractionDelta(state, pick.effect);
     next = {
       ...next,
+      actionsThisQuarter: next.actionsThisQuarter + 1,
       interactionsThisQuarter: [...next.interactionsThisQuarter, 'boss'],
       project: { ...next.project, bossLastInteractedQuarter: state.totalQuarters },
     };
@@ -224,6 +246,7 @@ export function useConstructionGameHandlers(
 
   const runCoworkerInteraction = (cwId: string) => {
     if (modals.isGameOver) return;
+    if (!checkActionQuota()) return;
     if (state.interactionsThisQuarter.includes(cwId)) {
       addLog('这位工友本季已聊透了。', 'WARNING');
       return;
@@ -233,6 +256,7 @@ export function useConstructionGameHandlers(
     let next = applyCoworkerInteractionDelta(state, pick.effect, cwId);
     next = {
       ...next,
+      actionsThisQuarter: next.actionsThisQuarter + 1,
       interactionsThisQuarter: [...next.interactionsThisQuarter, cwId],
       project: {
         ...next.project,

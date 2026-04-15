@@ -84,9 +84,9 @@ function createSnowflakes(count: number, w: number, h: number): Snowflake[] {
   }));
 }
 
-function createClouds(count: number, w: number): CloudBlob[] {
+function createClouds(count: number, w: number, h: number): CloudBlob[] {
   return Array.from({ length: count }, () => {
-    const baseY = rand(30, 160);
+    const baseY = rand(h * 0.08, h * 0.35);
     const numCircles = Math.floor(rand(5, 10));
     const circles: CloudBlob['circles'] = [];
     for (let j = 0; j < numCircles; j++) {
@@ -101,7 +101,7 @@ function createClouds(count: number, w: number): CloudBlob[] {
       y: baseY,
       speed: rand(0.12, 0.35),
       circles,
-      opacity: rand(0.3, 0.55),
+      opacity: rand(0.35, 0.65),
     };
   });
 }
@@ -236,13 +236,13 @@ function drawClouds(ctx: CanvasRenderingContext2D, clouds: CloudBlob[], w: numbe
         c.x + ci.dx, c.y + ci.dy, ci.r
       );
       if (isDark) {
-        grad.addColorStop(0, 'rgba(180, 190, 210, 0.5)');
-        grad.addColorStop(0.7, 'rgba(140, 150, 170, 0.2)');
+        grad.addColorStop(0, 'rgba(180, 190, 210, 0.55)');
+        grad.addColorStop(0.7, 'rgba(140, 150, 170, 0.25)');
         grad.addColorStop(1, 'rgba(140, 150, 170, 0)');
       } else {
-        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-        grad.addColorStop(0.7, 'rgba(240, 245, 255, 0.3)');
-        grad.addColorStop(1, 'rgba(240, 245, 255, 0)');
+        grad.addColorStop(0, 'rgba(160, 175, 195, 0.55)');
+        grad.addColorStop(0.7, 'rgba(180, 190, 205, 0.25)');
+        grad.addColorStop(1, 'rgba(200, 210, 220, 0)');
       }
       ctx.beginPath();
       ctx.arc(c.x + ci.dx, c.y + ci.dy, ci.r, 0, Math.PI * 2);
@@ -481,7 +481,7 @@ function WeatherCanvasInner({ weather }: WeatherParticlesProps) {
         rain: (weather === 'RAIN' || weather === 'HEAVY_RAIN')
           ? createRaindrops(weather === 'HEAVY_RAIN' ? 120 : 60, w, h, weather === 'HEAVY_RAIN') : [],
         snow: weather === 'SNOW' ? createSnowflakes(50, w, h) : [],
-        clouds: weather === 'CLOUDY' ? createClouds(7, w) : [],
+        clouds: weather === 'CLOUDY' ? createClouds(7, w, h) : [],
         wind: weather === 'WINDY' ? createWindStreaks(15, w, h) : [],
         sunRays: (weather === 'CLEAR' || weather === 'HOT') ? createSunRays(weather === 'HOT' ? 24 : 16, weather === 'HOT') : [],
         heatWaves: weather === 'HOT' ? createHeatWaves(10, w, h) : [],
