@@ -77,6 +77,7 @@ export function seedCoworkers(q: number): GameState['project']['coworkers'] {
     {
       id: 'cw_a',
       name: '钢筋华哥',
+      position: '老师傅',
       role: '老师傅',
       year: 3,
       status: '在绑扎钢筋',
@@ -86,6 +87,7 @@ export function seedCoworkers(q: number): GameState['project']['coworkers'] {
     {
       id: 'cw_b',
       name: '管线阿伟',
+      position: '施工员',
       role: '前辈',
       year: 2,
       status: '被监理追着要回复单',

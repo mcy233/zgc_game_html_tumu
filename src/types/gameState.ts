@@ -108,6 +108,8 @@ export interface GameState {
   // --- Cross-project resources ---
   salary: number;
   certificates: number;
+  /** Per-certificate study progress: { certId: accumulated points } */
+  certProgress: Record<string, number>;
   experience: number;
   networkValue: number;
   /** 隐性进度：人生选择条件判定 */

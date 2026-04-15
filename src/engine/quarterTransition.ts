@@ -4,8 +4,9 @@ import { BRAND } from '../config/branding';
 import { pickRandomQuarterChoice } from '../data/quarterChoiceEvents';
 import { ASSETS_LIBRARY, pickRandomAssetVendorTitle } from '../data/assets';
 import { rollSeasonWeather, weatherQuarterNote } from './weatherSystem';
-import { updateProjectPhase, isProjectComplete, enterTransferPeriod } from './projectManager';
+import { updateProjectPhase, isProjectComplete, enterTransferPeriod, computeBaseQuarterProgress, checkScheduleStatus } from './projectManager';
 import { getQuarterlySalary } from './promotionSystem';
+import { isAnnualReviewQuarter, performAnnualReview, type AnnualReviewResult } from './annualReview';
 
 export interface SectionReviewDetail {
   submitted: number;
@@ -33,6 +34,7 @@ export interface QuarterTransitionResult {
   sectionReviewDetail: SectionReviewDetail | null;
   isGameOver: boolean;
   isProjectComplete: boolean;
+  annualReview: AnnualReviewResult | null;
 }
 
 const MAX_LOGS = 50;
@@ -164,7 +166,7 @@ function prependLogs(state: GameState, entries: GameLog[]): GameState {
 /** Main quarter transition - the heart of v2 game loop */
 export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
   if (prev.gamePhase !== 'PLAYING') {
-    return { newState: prev, logs: [], sectionReviewDetail: null, isGameOver: false, isProjectComplete: false };
+    return { newState: prev, logs: [], sectionReviewDetail: null, isGameOver: false, isProjectComplete: false, annualReview: null };
   }
 
   const nextTotalQ = prev.totalQuarters + 1;
@@ -253,11 +255,40 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     }),
   };
 
+  const baseProgress = computeBaseQuarterProgress(newState.project);
+  newState.project = {
+    ...newState.project,
+    progress: clamp(newState.project.progress + baseProgress),
+  };
+
   const phaseResult = updateProjectPhase(newState.project);
   newState.project = phaseResult.project;
 
   const transitionLogs: GameLog[] = [];
   let isGameOver = false;
+
+  transitionLogs.push({
+    quarter: nextTotalQ,
+    message: `本季度项目基础施工推进 +${Math.round(baseProgress)}% 进度。`,
+    type: 'INFO',
+  });
+
+  const scheduleStatus = checkScheduleStatus(newState.project);
+  if (scheduleStatus === 'BEHIND') {
+    newState.project = { ...newState.project, ownerSatisfaction: Math.max(0, newState.project.ownerSatisfaction - 5) };
+    transitionLogs.push({
+      quarter: nextTotalQ,
+      message: '项目进度落后于计划工期，甲方开始施压。',
+      type: 'WARNING',
+    });
+  } else if (scheduleStatus === 'AHEAD') {
+    newState.project = { ...newState.project, ownerSatisfaction: Math.min(100, newState.project.ownerSatisfaction + 3) };
+    transitionLogs.push({
+      quarter: nextTotalQ,
+      message: '项目进度超前，甲方非常满意。',
+      type: 'SUCCESS',
+    });
+  }
 
   if (sectionReviewDetail) {
     transitionLogs.push({
@@ -345,13 +376,39 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
 
   let projectComplete = false;
   if (!isGameOver && isProjectComplete(newState.project)) {
+    const quartersUsed = newState.project.quarterInProject;
+    const planned = newState.project.totalQuarters;
+    const earlyBy = planned - quartersUsed;
     newState = enterTransferPeriod(newState);
     projectComplete = true;
-    transitionLogs.push({
-      quarter: nextTotalQ,
-      message: `${prev.project.name} 项目工期结束，进入转场评估期。`,
-      type: 'SUCCESS',
-    });
+
+    if (earlyBy > 0) {
+      const earlyBonus = earlyBy * 3000;
+      newState.salary += earlyBonus;
+      newState.lifetimeEarnings += earlyBonus;
+      newState.reputation = Math.min(100, newState.reputation + earlyBy * 3);
+      transitionLogs.push({
+        quarter: nextTotalQ,
+        message: `${prev.project.name} 提前 ${earlyBy} 个季度竣工！获得提前竣工奖金 ¥${earlyBonus}，口碑大幅提升！`,
+        type: 'SUCCESS',
+      });
+    } else if (earlyBy < 0) {
+      const penaltyPerQ = 2000;
+      const penalty = Math.abs(earlyBy) * penaltyPerQ;
+      newState.salary = Math.max(0, newState.salary - penalty);
+      newState.reputation = Math.max(0, newState.reputation - Math.abs(earlyBy) * 2);
+      transitionLogs.push({
+        quarter: nextTotalQ,
+        message: `${prev.project.name} 延期 ${Math.abs(earlyBy)} 个季度完工，扣除违约金 ¥${penalty}，甲方满意度下降。`,
+        type: 'WARNING',
+      });
+    } else {
+      transitionLogs.push({
+        quarter: nextTotalQ,
+        message: `${prev.project.name} 按期竣工，进入转场评估期。`,
+        type: 'SUCCESS',
+      });
+    }
   }
 
   if (!isGameOver && !projectComplete && Math.random() < 0.35) {
@@ -365,6 +422,16 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     type: 'INFO',
   });
 
+  let annualReview: AnnualReviewResult | null = null;
+  if (!isGameOver && isAnnualReviewQuarter(nextTotalQ)) {
+    const reviewResult = performAnnualReview(newState);
+    annualReview = reviewResult;
+    newState = reviewResult.newState;
+    for (const line of reviewResult.narrativeLines) {
+      transitionLogs.push({ quarter: nextTotalQ, message: line, type: reviewResult.performanceGrade === 'D' ? 'WARNING' : 'SUCCESS' });
+    }
+  }
+
   newState = prependLogs(newState, transitionLogs);
 
   return {
@@ -373,6 +440,7 @@ export function advanceToNextQuarter(prev: GameState): QuarterTransitionResult {
     sectionReviewDetail,
     isGameOver,
     isProjectComplete: projectComplete,
+    annualReview,
   };
 }
 

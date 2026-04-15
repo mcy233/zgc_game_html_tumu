@@ -21,6 +21,8 @@ import { useModals } from './useModals';
 
 type Modals = ReturnType<typeof useModals>;
 
+import type { AnnualReviewResult } from '../engine/annualReview';
+
 export function useConstructionGameHandlers(
   state: GameState,
   setState: Dispatch<SetStateAction<GameState>>,
@@ -31,7 +33,8 @@ export function useConstructionGameHandlers(
   setSectionReviewDetail: (v: SectionReviewDetail | null) => void,
   setWarningMessage: (v: string) => void,
   setProjectScore: (v: ProjectScore | null) => void,
-  interceptActionExecution?: ActionExecutionInterceptor
+  interceptActionExecution?: ActionExecutionInterceptor,
+  setAnnualReviewResult?: (v: AnnualReviewResult | null) => void
 ) {
   const pendingActionRef = useRef<Action | null>(null);
   const stateRef = useRef(state);
@@ -63,6 +66,9 @@ export function useConstructionGameHandlers(
     const result = advanceToNextQuarter(state);
     setSectionReviewDetail(result.sectionReviewDetail);
     setState(result.newState);
+    if (result.annualReview) {
+      setAnnualReviewResult?.(result.annualReview);
+    }
     if (result.isGameOver) {
       modals.setIsGameOver(true);
     } else if (result.isProjectComplete) {

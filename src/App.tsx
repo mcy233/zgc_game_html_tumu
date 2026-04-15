@@ -61,6 +61,8 @@ import { useGameAudio } from './systems/audio/useGameAudio';
 import { useTheme } from './systems/theme/useTheme';
 import { pickActionScenario, type ActionScenario, type ScenarioChoice } from './data/actionScenarios';
 import { ActionScenarioModal } from './components/modals/ActionScenarioModal';
+import type { AnnualReviewResult } from './engine/annualReview';
+import { AnnualReviewModal } from './components/modals/AnnualReviewModal';
 
 type FloatStatSnapshot = {
   morale: number;
@@ -102,6 +104,7 @@ export default function App() {
   const [showSettingsShell, setShowSettingsShell] = useState(false);
   const [summaryMainTaskHtml, setSummaryMainTaskHtml] = useState<string | null>(null);
   const [showQuarterTransition, setShowQuarterTransition] = useState(false);
+  const [annualReviewResult, setAnnualReviewResult] = useState<AnnualReviewResult | null>(null);
   const [activeMinigame, setActiveMinigame] = useState<MinigameConfig | null>(null);
   const [pendingActionForMinigame, setPendingActionForMinigame] = useState<Action | null>(null);
   const pendingMinigameActionRef = useRef<Action | null>(null);
@@ -143,7 +146,8 @@ export default function App() {
     setSectionReviewDetail,
     setWarningMessage,
     setProjectScore,
-    interceptActionExecution
+    interceptActionExecution,
+    setAnnualReviewResult
   );
 
   const onScenarioChoose = useCallback((choice: ScenarioChoice) => {
@@ -586,6 +590,12 @@ export default function App() {
         onCloseSettings={() => setShowSettingsShell(false)}
         showLLMSettings={modals.showLLMSettings}
         onCloseLLM={() => modals.setShowLLMSettings(false)}
+      />
+
+      <AnnualReviewModal
+        open={!!annualReviewResult}
+        result={annualReviewResult}
+        onClose={() => setAnnualReviewResult(null)}
       />
 
       <ActionScenarioModal

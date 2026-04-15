@@ -52,6 +52,7 @@ export function createInitialState(track: CareerTrack = 'TECH'): GameState {
 
     salary: 3000,
     certificates: 0,
+    certProgress: {},
     experience: 0,
     networkValue: 0,
     civilExamPrep: 0,

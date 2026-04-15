@@ -14,6 +14,7 @@ export const STAT_LABELS: Record<string, string> = {
   projectsCompleted: '已完工程',
   reviews: '行业评价',
   certificates: '资质证书',
+  studyPoints: '备考进度',
   bossApproval: '上级信任度',
   coworkerApproval: '工友好感度',
   favor: '工友好感度',

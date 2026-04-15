@@ -171,7 +171,7 @@ export function CenterMainPanel({
                           <div className="flex justify-between items-center gap-2">
                             <p className="font-bold text-sm text-gray-900 dark:text-gray-100">
                               {mate.name}
-                              <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">{mate.role}</span>
+                              <span className="text-gray-500 dark:text-gray-400 text-xs ml-1">{mate.position ?? mate.role}</span>
                             </p>
                             <button
                               type="button"

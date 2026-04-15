@@ -67,6 +67,7 @@ export function processQuarterlyStaffChanges(state: GameState): {
     newCoworker = {
       id: Math.random().toString(36).slice(2, 11),
       name: `${surname}${given}`,
+      position: '实习生',
       role: '新来的',
       year: 1,
       status: '刚进场，帽带系得比安全带还紧',

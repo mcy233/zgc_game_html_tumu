@@ -2,6 +2,7 @@ import type { GameState, Action, CareerTrack } from '../types/index';
 import { BOSS_PROFILES } from '../data/bossProfiles';
 import { getWeatherProgressModifier, getWeatherStaminaModifier, weatherEffectNote } from './weatherSystem';
 import { getActionsPerQuarter } from './promotionSystem';
+import { applyCertStudyPoints, countCompletedCerts, CERT_BY_ID } from '../data/certificateRegistry';
 
 export interface ActionResult {
   newState: GameState;
@@ -120,7 +121,18 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
     newProject.bossApproval = clamp(newProject.bossApproval + action.approvalGain * profile.approvalMultiplier);
   }
 
-  if (action.certificateGain) newState.certificates += action.certificateGain;
+  let certCompletedNames: string[] = [];
+  if (action.certificateGain) {
+    const certResult = applyCertStudyPoints(
+      action.id,
+      action.certificateGain,
+      newState.certProgress ?? {},
+      newState.careerStage,
+    );
+    newState.certProgress = certResult.newProgress;
+    newState.certificates = countCompletedCerts(certResult.newProgress);
+    certCompletedNames = certResult.newlyCompleted.map(id => CERT_BY_ID[id]?.name ?? id);
+  }
   if (action.safetyRiskChange) newState.safetyRisk = clamp(newState.safetyRisk + action.safetyRiskChange);
 
   if (action.experienceGain) newState.experience += action.experienceGain;
@@ -220,13 +232,19 @@ export function computeActionEffect(state: GameState, action: Action): ActionRes
   if (totalProgGain) eventEffect.progress = Math.round(totalProgGain);
   if (action.approvalGain) eventEffect.bossApproval = Math.round(action.approvalGain * profile.approvalMultiplier);
   if (action.salaryGain) eventEffect.salary = (eventEffect.salary || 0) + Math.round(action.salaryGain);
-  if (action.certificateGain) eventEffect.certificates = Math.round(action.certificateGain);
+  if (action.certificateGain) eventEffect.studyPoints = Math.round(action.certificateGain);
   if (action.experienceGain) eventEffect.experience = Math.round(action.experienceGain);
   if (action.networkGain) eventEffect.networkValue = Math.round(action.networkGain);
   let safetyDisplay = 0;
   if (action.safetyRiskChange) safetyDisplay += Math.round(action.safetyRiskChange);
   if (writePlanSafetyHit) safetyDisplay += writePlanSafetyDelta;
   if (safetyDisplay !== 0) eventEffect.safetyRisk = safetyDisplay;
+
+  if (certCompletedNames.length > 0) {
+    for (const name of certCompletedNames) {
+      logs.push(`恭喜！你成功考取了【${name}】！`);
+    }
+  }
 
   const narrative = pickActionNarrative(action);
 

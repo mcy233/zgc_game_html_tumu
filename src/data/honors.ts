@@ -312,7 +312,7 @@ const H: ProfileHonorDef[] = [
     headlineTitle: '佛系打工',
     popupTitle: '称号解锁：佛系打工',
     unlockBody: '心态超好口碑随缘，主打一个情绪稳定地摆烂。',
-    condition: s => s.morale >= 80 && s.reputation < 30,
+    condition: s => s.totalQuarters >= 4 && s.morale >= 80 && s.reputation < 30,
   },
   {
     id: 'social_phobia_site',
@@ -344,7 +344,7 @@ const H: ProfileHonorDef[] = [
     headlineTitle: '养生达人',
     popupTitle: '称号解锁：养生达人',
     unlockBody: '体力心情精力三维拉满，保温杯里泡的不是枸杞，是职场玄学。',
-    condition: s => s.stamina >= 90 && s.morale >= 90 && s.energy >= 90,
+    condition: s => s.totalQuarters >= 4 && s.stamina >= 90 && s.morale >= 90 && s.energy >= 90,
   },
   {
     id: 'live_on_the_edge',
@@ -408,7 +408,14 @@ export function listUnlockedHonorsOrdered(state: GameState): ProfileHonorDef[] {
   return out;
 }
 
+/**
+ * Minimum quarters before any honors can be scanned.
+ * Prevents honors from popping on the very first frame of the game.
+ */
+const HONOR_MIN_QUARTERS = 1;
+
 export function scanNewHonorIds(state: GameState): string[] {
+  if (state.totalQuarters < HONOR_MIN_QUARTERS) return [];
   const have = new Set(state.unlockedHonors ?? []);
   return PROFILE_HONORS.filter(h => h.condition(state) && !have.has(h.id)).map(h => h.id);
 }

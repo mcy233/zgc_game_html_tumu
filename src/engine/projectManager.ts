@@ -4,38 +4,66 @@ import { getStageDefinition } from '../data/careerPaths';
 import { rollSeasonWeather } from './weatherSystem';
 import { SEASONS } from '../config/gameConfig';
 
+import type { CoworkerPosition, Coworker } from '../types/characters';
+
 const PM_NAMES = ['周铁军', '吴立柱', '郑标高', '王节点', '冯浇筑', '陈验筋', '赵放线', '钱标段'];
 
 function pickBossName(): string {
   return PM_NAMES[Math.floor(Math.random() * PM_NAMES.length)]!;
 }
 
-/** Seed initial coworkers for a new project */
-function seedProjectCoworkers(totalQuarter: number): ProjectState['coworkers'] {
-  const surnames = ['砼', '梁', '柱', '筋', '焊', '泵', '灰', '模', '架', '测'];
-  const givens = ['大力', '稳当', '标高', '放线', '养护', '收面', '堵漏', '签证', '节点', '验筋'];
-  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]!;
+const SURNAMES = ['张', '李', '王', '赵', '陈', '刘', '杨', '黄', '周', '吴', '孙', '马', '朱', '胡', '林', '郭', '何', '罗', '高', '郑'];
+const GIVEN_NAMES = ['伟', '强', '磊', '军', '勇', '杰', '涛', '明', '超', '华', '斌', '飞', '鹏', '峰', '亮', '刚', '平', '建', '国', '志'];
 
-  return [
-    {
-      id: `cw_${Date.now()}_a`,
-      name: `${pick(surnames)}${pick(givens)}`,
-      role: '老师傅' as const,
-      year: 3,
-      status: '在绑扎钢筋，手套磨出洞',
-      favor: 50,
+function randomName(): string {
+  const s = SURNAMES[Math.floor(Math.random() * SURNAMES.length)]!;
+  const g = GIVEN_NAMES[Math.floor(Math.random() * GIVEN_NAMES.length)]!;
+  const g2 = Math.random() > 0.5 ? GIVEN_NAMES[Math.floor(Math.random() * GIVEN_NAMES.length)]! : '';
+  return s + g + g2;
+}
+
+function positionToRole(pos: CoworkerPosition): Coworker['role'] {
+  if (pos === '老师傅') return '老师傅';
+  if (pos === '实习生') return '新来的';
+  if (pos.includes('负责人') || pos.includes('主管')) return '前辈';
+  return '同期';
+}
+
+interface TeamSlot {
+  position: CoworkerPosition;
+  status: string;
+  year: number;
+  baseFavor: number;
+}
+
+const TEAM_SLOTS: TeamSlot[] = [
+  { position: '施工员',   status: '在现场盯浇筑',     year: 2, baseFavor: 50 },
+  { position: '技术员',   status: '在写施工方案',       year: 2, baseFavor: 52 },
+  { position: '商务员',   status: '在核对工程量清单',   year: 1, baseFavor: 48 },
+  { position: '质量员',   status: '在做试验台账',       year: 3, baseFavor: 50 },
+  { position: '安全员',   status: '在巡查安全隐患',     year: 4, baseFavor: 55 },
+  { position: '采购员',   status: '在联系供应商报价',   year: 1, baseFavor: 45 },
+  { position: '老师傅',   status: '钢筋绑扎二十年经验', year: 15, baseFavor: 40 },
+];
+
+/** Seed project team with realistic position-based coworkers */
+function seedProjectCoworkers(totalQuarter: number): Coworker[] {
+  const usedNames = new Set<string>();
+  return TEAM_SLOTS.map((slot, i) => {
+    let name = randomName();
+    while (usedNames.has(name)) name = randomName();
+    usedNames.add(name);
+    return {
+      id: `cw_${Date.now()}_${i}`,
+      name,
+      position: slot.position,
+      role: positionToRole(slot.position),
+      year: slot.year + Math.floor(Math.random() * 3),
+      status: slot.status,
+      favor: slot.baseFavor + Math.floor(Math.random() * 10) - 5,
       lastInteractedQuarter: totalQuarter,
-    },
-    {
-      id: `cw_${Date.now()}_b`,
-      name: `${pick(surnames)}${pick(givens)}`,
-      role: '前辈' as const,
-      year: 2,
-      status: '被监理追着要回复单',
-      favor: 48,
-      lastInteractedQuarter: totalQuarter,
-    },
-  ];
+    };
+  });
 }
 
 /** Generate a fresh ProjectState for a given project type */
@@ -71,27 +99,69 @@ export function generateFirstProject(totalQuarter: number): ProjectState {
   return generateProject('RESIDENTIAL', totalQuarter);
 }
 
-/** Update the project phase based on current quarter position */
+/**
+ * Compute base progress for a quarter.
+ * The project naturally progresses even without player action.
+ * Player actions can accelerate or slow this base rate.
+ */
+export function computeBaseQuarterProgress(project: ProjectState): number {
+  const tmpl = PROJECT_TEMPLATES[project.type];
+  const phaseFraction = tmpl.phaseBreakdown[project.phase];
+  const phaseQuarters = Math.max(1, Math.round(project.totalQuarters * phaseFraction));
+  const basePerQuarter = 100 / phaseQuarters;
+  const jitter = (Math.random() - 0.5) * 6;
+  return Math.max(5, basePerQuarter + jitter);
+}
+
+/**
+ * Update the project phase. Phase transitions happen when progress >= 100,
+ * NOT based on time. This gives the player control over pacing.
+ */
 export function updateProjectPhase(project: ProjectState): { project: ProjectState; phaseChanged: boolean; oldPhase: ProjectPhase } {
   const oldPhase = project.phase;
-  const newPhase = getProjectPhase(project.type, project.quarterInProject, project.totalQuarters);
-  if (newPhase === oldPhase) {
+  if (project.progress < 100) {
     return { project, phaseChanged: false, oldPhase };
   }
+  const phases: ProjectPhase[] = ['PREP', 'FOUNDATION', 'MAIN', 'FINISHING'];
+  const idx = phases.indexOf(oldPhase);
+  if (idx >= phases.length - 1) {
+    return { project, phaseChanged: false, oldPhase };
+  }
+  const newPhase = phases[idx + 1]!;
   return {
     project: {
       ...project,
       phase: newPhase,
-      progress: 0, // reset progress when entering new phase
+      progress: 0,
     },
     phaseChanged: true,
     oldPhase,
   };
 }
 
-/** Check if the project has reached its end (all quarters used) */
+/**
+ * Check if the project is complete: must be in FINISHING phase with progress >= 100.
+ */
 export function isProjectComplete(project: ProjectState): boolean {
-  return project.quarterInProject >= project.totalQuarters;
+  return project.phase === 'FINISHING' && project.progress >= 100;
+}
+
+/**
+ * Check if the project is running behind schedule.
+ * Returns a penalty descriptor or null.
+ */
+export function checkScheduleStatus(project: ProjectState): 'AHEAD' | 'ON_TRACK' | 'BEHIND' {
+  const elapsed = project.quarterInProject;
+  const total = project.totalQuarters;
+  const ratio = elapsed / total;
+  const phases: ProjectPhase[] = ['PREP', 'FOUNDATION', 'MAIN', 'FINISHING'];
+  const phaseIdx = phases.indexOf(project.phase);
+  const expectedPhaseProgress = ratio;
+  const actualPhaseProgress = (phaseIdx + project.progress / 100) / phases.length;
+  const diff = actualPhaseProgress - expectedPhaseProgress;
+  if (diff > 0.1) return 'AHEAD';
+  if (diff < -0.15) return 'BEHIND';
+  return 'ON_TRACK';
 }
 
 /** Evaluate project completion and return a score summary */
