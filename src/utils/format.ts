@@ -47,12 +47,21 @@ export function effectStatLabel(key: string): string {
   return STAT_LABELS[key] ?? key;
 }
 
+/** 数值最多保留两位小数（去尾零） */
+export function fmtNum(val: number): string {
+  if (!Number.isFinite(val)) return '—';
+  const r = Math.round(val * 100) / 100;
+  if (Number.isInteger(r)) return String(r);
+  return r.toFixed(2).replace(/0+$/, '');
+}
+
 /** 展示单条数值变化（含正负号，0 为 `0`） */
 export function formatEffectDisplayValue(val: number): string {
   if (!Number.isFinite(val)) return '—';
-  const n = Math.abs(val - Math.round(val)) < 1e-6 ? Math.round(val) : Math.round(val * 10) / 10;
+  const n = Math.round(val * 100) / 100;
   if (n === 0) return '0';
-  return n > 0 ? `+${n}` : `${n}`;
+  const s = Number.isInteger(n) ? String(Math.abs(n)) : Math.abs(n).toFixed(2).replace(/0+$/, '');
+  return n > 0 ? `+${s}` : `-${s}`;
 }
 
 export function roundEffectRecord(effect: Record<string, number>): Record<string, number> {

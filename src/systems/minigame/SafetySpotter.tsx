@@ -97,7 +97,7 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
     <div className="flex flex-col gap-3 items-stretch">
       {phase === 'playing' && (
         <>
-          <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-amber-500"
               initial={false}
@@ -105,7 +105,7 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
               transition={{ duration: 0.35, ease: 'easeOut' }}
             />
           </div>
-          <div className="flex justify-between text-xs font-semibold text-gray-600 px-0.5">
+          <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 px-0.5">
             <span>剩余 {Math.max(0, secondsLeft)} 秒</span>
             <span>
               已发现 {foundCount}/{TOTAL}
@@ -114,8 +114,8 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
         </>
       )}
 
-      <div className="relative mx-auto rounded-2xl overflow-hidden border border-gray-200 shadow-inner bg-sky-100">
-        <svg viewBox="0 0 300 400" width={300} height={400} className="block select-none">
+      <div className="relative mx-auto rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-600 shadow-inner bg-sky-100 dark:bg-slate-800">
+        <svg viewBox="0 0 300 400" width={300} height={400} className="block select-none dark:brightness-[0.92] dark:contrast-[1.02]">
           <defs>
             <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#E0F2FE" />
@@ -175,7 +175,7 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
                 width={h.w}
                 height={h.h}
                 fill="transparent"
-                className="cursor-pointer hover:fill-white/10"
+                className="cursor-pointer hover:fill-white/10 dark:hover:fill-white/15"
                 onClick={() => onHit(h.id)}
               />
               {found.has(h.id) && (
@@ -196,7 +196,7 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
                     x={h.x + h.w / 2}
                     y={h.y - 6}
                     textAnchor="middle"
-                    fill="#DC2626"
+                    className="fill-red-600 dark:fill-red-400"
                     fontSize={10}
                     fontWeight={700}
                     style={{ fontFamily: 'system-ui, sans-serif' }}
@@ -210,25 +210,25 @@ export function SafetySpotter({ onComplete }: MinigameProps) {
         </svg>
       </div>
 
-      <p className="text-xs text-center text-gray-500">点击图中隐患区域进行标记</p>
+      <p className="text-xs text-center text-gray-500 dark:text-gray-400">点击图中隐患区域进行标记</p>
 
       <AnimatePresence>
         {phase === 'settled' && result && (
           <motion.div
-            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 mt-1"
+            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-600 mt-1"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <div className="text-6xl font-black tabular-nums text-gray-900 tracking-tight">{result.grade}</div>
-            <p className="text-sm text-center text-gray-700 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
-            <p className="text-xs text-gray-500">
+            <div className="text-6xl font-black tabular-nums text-gray-900 dark:text-gray-100 tracking-tight">{result.grade}</div>
+            <p className="text-sm text-center text-gray-700 dark:text-gray-300 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               得分 {result.score} · 行动加成 ×{result.bonusMultiplier.toFixed(1)}
             </p>
             <button
               type="button"
               onClick={() => onComplete(result)}
-              className="mt-1 px-8 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+              className="mt-1 px-8 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-gray-900 text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               返回
             </button>

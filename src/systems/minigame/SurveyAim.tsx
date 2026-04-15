@@ -143,7 +143,7 @@ export function SurveyAim({ onComplete }: MinigameProps) {
   return (
     <div className="flex flex-col gap-3 items-stretch">
       {phase === 'playing' && (
-        <div className="flex justify-between text-xs font-semibold text-gray-600 px-0.5">
+        <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 px-0.5">
           <span>
             第 {Math.min(roundIndex + 1, ROUNDS)}/{ROUNDS} 次瞄准
           </span>
@@ -155,7 +155,7 @@ export function SurveyAim({ onComplete }: MinigameProps) {
         type="button"
         onClick={onFire}
         disabled={phase !== 'playing'}
-        className="relative mx-auto rounded-2xl border border-gray-200 shadow-inner bg-slate-900/90 overflow-hidden disabled:opacity-95"
+        className="relative mx-auto rounded-2xl border border-gray-200 dark:border-gray-600 shadow-inner bg-slate-900/90 overflow-hidden disabled:opacity-95"
         style={{ width: BOX, height: BOX }}
       >
         <div
@@ -169,7 +169,7 @@ export function SurveyAim({ onComplete }: MinigameProps) {
         />
 
         <div
-          className="absolute rounded-full bg-red-500 border border-red-200 shadow-[0_0_10px_rgba(239,68,68,0.7)] pointer-events-none"
+          className="absolute rounded-full bg-red-500 border border-red-200 dark:border-red-900 shadow-[0_0_10px_rgba(239,68,68,0.7)] pointer-events-none"
           style={{
             width: TARGET_R * 2,
             height: TARGET_R * 2,
@@ -206,25 +206,25 @@ export function SurveyAim({ onComplete }: MinigameProps) {
         </AnimatePresence>
       </button>
 
-      <p className="text-xs text-center text-gray-500">准星会漂移，尽量对准红点中心再点</p>
+      <p className="text-xs text-center text-gray-500 dark:text-gray-400">准星会漂移，尽量对准红点中心再点</p>
 
       <AnimatePresence>
         {phase === 'settled' && result && (
           <motion.div
-            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 mt-1"
+            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-600 mt-1"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <div className="text-6xl font-black tabular-nums text-gray-900 tracking-tight">{result.grade}</div>
-            <p className="text-sm text-center text-gray-700 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
-            <p className="text-xs text-gray-500">
+            <div className="text-6xl font-black tabular-nums text-gray-900 dark:text-gray-100 tracking-tight">{result.grade}</div>
+            <p className="text-sm text-center text-gray-700 dark:text-gray-300 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               得分 {result.score} · 行动加成 ×{result.bonusMultiplier.toFixed(1)}
             </p>
             <button
               type="button"
               onClick={() => onComplete(result)}
-              className="mt-1 px-8 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+              className="mt-1 px-8 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-gray-900 text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               返回
             </button>

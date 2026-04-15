@@ -4,6 +4,7 @@ import type { GameState } from '../../types/index';
 import { getEndingNarrative, failureGameOverCopy } from '../../engine/endingSystem';
 import { getCareerTitle } from '../../data/careerPaths';
 import { BRAND } from '../../config/branding';
+import { fmtNum } from '../../utils/format';
 
 export interface GameOverModalProps {
   open: boolean;
@@ -59,11 +60,11 @@ export function GameOverModal({ open, state, onRestart }: GameOverModalProps) {
               </div>
               <div>
                 <p className="text-[10px] font-mono uppercase opacity-40 dark:text-gray-500">经验值</p>
-                <p className="text-2xl font-bold dark:text-gray-100">{state.experience}</p>
+                <p className="text-2xl font-bold dark:text-gray-100">{fmtNum(state.experience)}</p>
               </div>
               <div>
                 <p className="text-[10px] font-mono uppercase opacity-40 dark:text-gray-500">行业口碑</p>
-                <p className="text-2xl font-bold dark:text-gray-100">{state.reputation}</p>
+                <p className="text-2xl font-bold dark:text-gray-100">{fmtNum(state.reputation)}</p>
               </div>
             </div>
 

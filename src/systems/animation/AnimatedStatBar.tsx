@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 
 import type { StatBarProps } from '../../components/cards/StatBar';
 import { isFeatureEnabled } from '../featureFlags';
+import { fmtNum } from '../../utils/format';
 
 export function AnimatedStatBar({
   icon: Icon,
@@ -26,7 +27,7 @@ export function AnimatedStatBar({
             <Icon size={10} /> {label}
           </span>
           <span>
-            {Math.round(value)}
+            {fmtNum(value)}
             {suffix}/{max}
             {suffix}
           </span>
@@ -50,7 +51,7 @@ export function AnimatedStatBar({
           <Icon size={10} /> {label}
         </span>
         <span>
-          {Math.round(value)}
+          {fmtNum(value)}
           {suffix}/{max}
           {suffix}
         </span>

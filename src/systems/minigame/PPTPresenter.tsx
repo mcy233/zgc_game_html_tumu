@@ -133,7 +133,7 @@ export function PPTPresenter({ onComplete }: MinigameProps) {
   return (
     <div className="flex flex-col gap-3 items-stretch">
       {phase === 'playing' && (
-        <div className="flex justify-between text-xs font-semibold text-gray-600 px-0.5">
+        <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 px-0.5">
           <span>
             关键词 {Math.min(index + 1, KEYWORDS.length)}/{KEYWORDS.length}
           </span>
@@ -145,10 +145,15 @@ export function PPTPresenter({ onComplete }: MinigameProps) {
 
       <div
         ref={playRef}
-        className="relative mx-auto w-full max-w-[340px] rounded-2xl overflow-hidden border border-gray-200 shadow-inner bg-amber-50/80"
+        className="relative mx-auto w-full max-w-[340px] rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-600 shadow-inner bg-amber-50/80 dark:bg-amber-950/40"
         style={{ height: PLAY_H }}
       >
-        <svg viewBox="0 0 320 380" width="100%" height="100%" className="absolute inset-0 block select-none pointer-events-none">
+        <svg
+          viewBox="0 0 320 380"
+          width="100%"
+          height="100%"
+          className="absolute inset-0 block select-none pointer-events-none dark:opacity-[0.88]"
+        >
           <rect width="320" height="380" fill="#FEF9C3" opacity={0.5} />
           <ellipse cx="160" cy="300" rx="120" ry="36" fill="#D4A574" stroke="#92400E" strokeWidth="2" />
           <rect x="100" y="268" width="120" ry="4" height="16" fill="#B45309" opacity={0.35} />
@@ -161,7 +166,7 @@ export function PPTPresenter({ onComplete }: MinigameProps) {
         </svg>
 
         <div
-          className="absolute left-2 right-2 rounded-lg bg-blue-500/25 border border-blue-400/40 pointer-events-none"
+          className="absolute left-2 right-2 rounded-lg bg-blue-500/25 dark:bg-blue-400/20 border border-blue-400/40 dark:border-blue-500/35 pointer-events-none"
           style={{ top: `${ZONE_TOP_FR * 100}%`, height: `${(ZONE_BOTTOM_FR - ZONE_TOP_FR) * 100}%` }}
         />
 
@@ -171,7 +176,7 @@ export function PPTPresenter({ onComplete }: MinigameProps) {
               key={index}
               type="button"
               layout={false}
-              className="absolute left-1/2 z-10 min-w-[120px] max-w-[200px] -translate-x-1/2 px-3 py-2 rounded-2xl bg-white border-2 border-gray-800 shadow-md text-sm font-bold text-gray-900 cursor-pointer hover:bg-amber-50"
+              className="absolute left-1/2 z-10 min-w-[120px] max-w-[200px] -translate-x-1/2 px-3 py-2 rounded-2xl bg-white dark:bg-gray-700 border-2 border-gray-800 dark:border-gray-300 shadow-md text-sm font-bold text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-950/40"
               style={{ top: 0 }}
               initial={{ y: -56 }}
               animate={{ y: PLAY_H - 8 }}
@@ -194,40 +199,42 @@ export function PPTPresenter({ onComplete }: MinigameProps) {
               exit={{ opacity: 0 }}
             >
               {flash.kind === 'perfect' && (
-                <div className="text-4xl font-black text-emerald-500 drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]">
+                <div className="text-4xl font-black text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.9)]">
                   Perfect
                 </div>
               )}
               {flash.kind === 'good' && (
-                <div className="text-4xl font-black text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.85)]">
+                <div className="text-4xl font-black text-amber-500 dark:text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.85)]">
                   Good
                 </div>
               )}
-              {flash.kind === 'miss' && <div className="text-5xl font-black text-red-600">✕</div>}
+              {flash.kind === 'miss' && (
+                <div className="text-5xl font-black text-red-600 dark:text-red-400">✕</div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <p className="text-xs text-center text-gray-500">在蓝色击中带内点击下落的关键词气泡</p>
+      <p className="text-xs text-center text-gray-500 dark:text-gray-400">在蓝色击中带内点击下落的关键词气泡</p>
 
       <AnimatePresence>
         {phase === 'settled' && result && (
           <motion.div
-            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 mt-1"
+            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-600 mt-1"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <div className="text-6xl font-black tabular-nums text-gray-900 tracking-tight">{result.grade}</div>
-            <p className="text-sm text-center text-gray-700 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
-            <p className="text-xs text-gray-500">
+            <div className="text-6xl font-black tabular-nums text-gray-900 dark:text-gray-100 tracking-tight">{result.grade}</div>
+            <p className="text-sm text-center text-gray-700 dark:text-gray-300 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               得分 {result.score} · 行动加成 ×{result.bonusMultiplier.toFixed(1)}
             </p>
             <button
               type="button"
               onClick={() => onComplete(result)}
-              className="mt-1 px-8 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+              className="mt-1 px-8 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-gray-900 text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               返回
             </button>

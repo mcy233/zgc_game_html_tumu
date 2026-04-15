@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import type { ProjectScore } from '../../engine/projectManager';
+import { fmtNum } from '../../utils/format';
 
 export interface ProjectScoreModalProps {
   open: boolean;
@@ -40,19 +41,19 @@ export function ProjectScoreModal({ open, score, projectName, onContinue }: Proj
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl text-center">
                 <p className="text-[10px] font-mono opacity-50 dark:text-gray-500">进度评分</p>
-                <p className="text-lg font-bold dark:text-gray-100">{score.progressScore}</p>
+                <p className="text-lg font-bold dark:text-gray-100">{fmtNum(score.progressScore)}</p>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl text-center">
                 <p className="text-[10px] font-mono opacity-50 dark:text-gray-500">安全评分</p>
-                <p className="text-lg font-bold dark:text-gray-100">{score.safetyScore}</p>
+                <p className="text-lg font-bold dark:text-gray-100">{fmtNum(score.safetyScore)}</p>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl text-center">
                 <p className="text-[10px] font-mono opacity-50 dark:text-gray-500">甲方满意</p>
-                <p className="text-lg font-bold dark:text-gray-100">{score.ownerScore}</p>
+                <p className="text-lg font-bold dark:text-gray-100">{fmtNum(score.ownerScore)}</p>
               </div>
               <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl text-center">
                 <p className="text-[10px] font-mono opacity-50 dark:text-gray-500">上级评价</p>
-                <p className="text-lg font-bold dark:text-gray-100">{score.bossScore}</p>
+                <p className="text-lg font-bold dark:text-gray-100">{fmtNum(score.bossScore)}</p>
               </div>
             </div>
 

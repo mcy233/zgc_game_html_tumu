@@ -10,6 +10,7 @@ import { relationMoodLabel } from '../../engine/progressionRules';
 import { StatBar } from '../cards/StatBar';
 import type { Tab } from '../../hooks/useLayout';
 import { CharacterAvatar } from '../../systems/animation/CharacterAvatar';
+import { fmtNum } from '../../utils/format';
 
 export interface CenterMainPanelProps {
   state: GameState;
@@ -121,9 +122,9 @@ export function CenterMainPanel({
                   {state.project.name} · {phaseName}
                 </p>
                 <p>
-                  职级 {careerTitle}，形象进度 {Math.round(state.project.progress)}%，本项已完分项{' '}
-                  {state.project.completedSections}，累计完工项目 {state.totalProjectsCompleted}，人脉 {state.networkValue}，口碑{' '}
-                  {state.reputation}。项目经理 {state.project.bossName}（{BOSS_PROFILES[state.project.bossType].label}
+                  职级 {careerTitle}，形象进度 {fmtNum(state.project.progress)}%，本项已完分项{' '}
+                  {state.project.completedSections}，累计完工项目 {state.totalProjectsCompleted}，人脉 {fmtNum(state.networkValue)}，口碑{' '}
+                  {fmtNum(state.reputation)}。项目经理 {state.project.bossName}（{BOSS_PROFILES[state.project.bossType].label}
                   ）在岗。
                 </p>
               </div>
@@ -219,6 +220,31 @@ export function CenterMainPanel({
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{asset.description}</p>
                           </div>
                         </div>
+                        {Object.entries(asset.effect).filter(([, v]) => v !== undefined && v !== 0).length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {asset.effect.moraleCostMultiplier != null && asset.effect.moraleCostMultiplier !== 1 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300">心态消耗 ×{asset.effect.moraleCostMultiplier}</span>
+                            )}
+                            {asset.effect.staminaCostMultiplier != null && asset.effect.staminaCostMultiplier !== 1 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300">体力消耗 ×{asset.effect.staminaCostMultiplier}</span>
+                            )}
+                            {asset.effect.energyGainMultiplier != null && asset.effect.energyGainMultiplier !== 1 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 dark:bg-cyan-950/40 dark:text-cyan-300">精力恢复 ×{asset.effect.energyGainMultiplier}</span>
+                            )}
+                            {asset.effect.progressGainMultiplier != null && asset.effect.progressGainMultiplier !== 1 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">进度加成 ×{asset.effect.progressGainMultiplier}</span>
+                            )}
+                            {asset.effect.materialsGainPerQuarter != null && asset.effect.materialsGainPerQuarter !== 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">每季物资 +{asset.effect.materialsGainPerQuarter}</span>
+                            )}
+                            {asset.effect.salaryGainPerQuarter != null && asset.effect.salaryGainPerQuarter !== 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">每季工资 +¥{asset.effect.salaryGainPerQuarter}</span>
+                            )}
+                            {asset.effect.reputationGainMultiplier != null && asset.effect.reputationGainMultiplier !== 1 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300">口碑加成 ×{asset.effect.reputationGainMultiplier}</span>
+                            )}
+                          </div>
+                        )}
                         <div className="flex justify-between items-center pt-2 border-t border-black/5 dark:border-white/10">
                           <span className="text-sm font-mono text-emerald-600 dark:text-emerald-400">回收 ¥{asset.sellPrice}</span>
                           <button

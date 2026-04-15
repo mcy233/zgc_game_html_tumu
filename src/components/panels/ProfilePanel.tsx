@@ -21,6 +21,7 @@ import { getCareerTitle } from '../../data/careerPaths';
 import { phaseLabel } from '../../data/projectTemplates';
 import { StatBar } from '../cards/StatBar';
 import { AnimatedStatBar } from '../../systems/animation/AnimatedStatBar';
+import { fmtNum } from '../../utils/format';
 
 export interface ProfilePanelProps {
   state: GameState;
@@ -80,7 +81,7 @@ export function ProfilePanel({
               <p className="text-[8px] font-mono uppercase opacity-50 text-violet-900/70 dark:text-violet-300/90 flex items-center gap-1">
                 <TrendingUp size={10} className="opacity-70" /> 经验值
               </p>
-              <p className="text-sm font-bold font-mono text-violet-800 dark:text-violet-300 mt-1">{state.experience}</p>
+              <p className="text-sm font-bold font-mono text-violet-800 dark:text-violet-300 mt-1">{fmtNum(state.experience)}</p>
             </div>
             <div
               id="ff-stat-network"
@@ -89,7 +90,7 @@ export function ProfilePanel({
               <p className="text-[8px] font-mono uppercase opacity-50 text-teal-900/70 dark:text-teal-300/90 flex items-center gap-1">
                 <Users size={10} className="opacity-70" /> 人脉值
               </p>
-              <p className="text-sm font-bold font-mono text-teal-800 dark:text-teal-300 mt-1">{state.networkValue}</p>
+              <p className="text-sm font-bold font-mono text-teal-800 dark:text-teal-300 mt-1">{fmtNum(state.networkValue)}</p>
             </div>
           </div>
 
@@ -125,7 +126,7 @@ export function ProfilePanel({
             >
               <p className="text-[8px] font-mono uppercase opacity-40 dark:text-gray-500">资质证书</p>
               <p className="text-sm font-bold flex items-center gap-1 dark:text-gray-100">
-                <BookOpen size={12} /> {state.certificates}
+                <BookOpen size={12} /> {fmtNum(state.certificates)}
               </p>
             </div>
             <div
@@ -134,7 +135,7 @@ export function ProfilePanel({
             >
               <p className="text-[8px] font-mono uppercase opacity-40 dark:text-gray-500">行业口碑</p>
               <p className="text-sm font-bold flex items-center gap-1 dark:text-gray-100">
-                <Star size={12} className="text-yellow-500 dark:text-yellow-400" /> {state.reputation}
+                <Star size={12} className="text-yellow-500 dark:text-yellow-400" /> {fmtNum(state.reputation)}
               </p>
             </div>
           </div>

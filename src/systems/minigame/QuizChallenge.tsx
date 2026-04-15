@@ -199,7 +199,7 @@ export function QuizChallenge({ onComplete }: MinigameProps) {
     <div className="flex flex-col gap-3 items-stretch">
       {phase === 'playing' && qi < rounds.length && (
         <>
-          <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-violet-500"
               initial={false}
@@ -207,7 +207,7 @@ export function QuizChallenge({ onComplete }: MinigameProps) {
               transition={{ duration: 0.35, ease: 'easeOut' }}
             />
           </div>
-          <div className="flex justify-between text-xs font-semibold text-gray-600 px-0.5">
+          <div className="flex justify-between text-xs font-semibold text-gray-600 dark:text-gray-400 px-0.5">
             <span>
               第 {qi + 1}/{rounds.length} 题
             </span>
@@ -217,8 +217,8 @@ export function QuizChallenge({ onComplete }: MinigameProps) {
       )}
 
       {phase === 'playing' && current && (
-        <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4">
-          <p className="text-sm font-bold text-gray-900 leading-snug mb-4">{current.question}</p>
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-600 bg-gray-50/80 dark:bg-gray-700/50 p-4">
+          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-snug mb-4">{current.question}</p>
           <div className="flex flex-col gap-2">
             {current.options.map((opt, i) => {
               const isRight = i === current.correctIndex;
@@ -226,13 +226,13 @@ export function QuizChallenge({ onComplete }: MinigameProps) {
               let cls =
                 'w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-semibold transition-colors ';
               if (!revealed) {
-                cls += 'border-gray-200 bg-white hover:bg-violet-50 hover:border-violet-300';
+                cls += 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-500';
               } else if (isRight) {
-                cls += 'border-emerald-500 bg-emerald-50 text-emerald-900';
+                cls += 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300';
               } else if (isPicked && !isRight) {
-                cls += 'border-red-400 bg-red-50 text-red-900';
+                cls += 'border-red-400 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-300';
               } else {
-                cls += 'border-gray-100 bg-white/60 text-gray-500';
+                cls += 'border-gray-100 dark:border-gray-600 bg-white/60 dark:bg-gray-700/40 text-gray-500 dark:text-gray-400';
               }
               return (
                 <button
@@ -250,25 +250,25 @@ export function QuizChallenge({ onComplete }: MinigameProps) {
         </div>
       )}
 
-      <p className="text-xs text-center text-gray-500">建筑工程趣味快答，超时未选视为错误</p>
+      <p className="text-xs text-center text-gray-500 dark:text-gray-400">建筑工程趣味快答，超时未选视为错误</p>
 
       <AnimatePresence>
         {phase === 'settled' && result && (
           <motion.div
-            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 mt-1"
+            className="flex flex-col items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-600 mt-1"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
           >
-            <div className="text-6xl font-black tabular-nums text-gray-900 tracking-tight">{result.grade}</div>
-            <p className="text-sm text-center text-gray-700 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
-            <p className="text-xs text-gray-500">
+            <div className="text-6xl font-black tabular-nums text-gray-900 dark:text-gray-100 tracking-tight">{result.grade}</div>
+            <p className="text-sm text-center text-gray-700 dark:text-gray-300 px-2 leading-relaxed">{messageForGrade(result.grade)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               得分 {result.score} · 行动加成 ×{result.bonusMultiplier.toFixed(1)}
             </p>
             <button
               type="button"
               onClick={() => onComplete(result)}
-              className="mt-1 px-8 py-2.5 rounded-xl bg-black text-white text-sm font-bold hover:bg-gray-800 transition-colors"
+              className="mt-1 px-8 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-gray-900 text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
             >
               返回
             </button>

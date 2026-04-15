@@ -31,7 +31,7 @@ export function MinigameHost({ config, onComplete, onSkip }: MinigameHostProps) 
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
-            className="relative z-10 w-full max-w-lg max-h-[90dvh] flex flex-col rounded-3xl bg-white shadow-2xl border border-black/5 overflow-hidden"
+            className="relative z-10 w-full max-w-lg max-h-[90dvh] flex flex-col rounded-3xl bg-white dark:bg-gray-800 shadow-2xl border border-black/5 dark:border-white/10 overflow-hidden"
             initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -41,7 +41,7 @@ export function MinigameHost({ config, onComplete, onSkip }: MinigameHostProps) 
               <button
                 type="button"
                 onClick={onSkip}
-                className="text-sm font-semibold text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-xl hover:bg-black/5 transition-colors"
+                className="text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 px-3 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
                 跳过
               </button>

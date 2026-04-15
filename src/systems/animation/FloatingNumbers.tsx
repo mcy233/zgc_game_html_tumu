@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import { isFeatureEnabled } from '../featureFlags';
 import type { FloatingItem } from './useFloatingNumber';
+import { fmtNum } from '../../utils/format';
 
 const colorClass: Record<FloatingItem['color'], string> = {
   green: 'text-emerald-500',
@@ -18,8 +19,8 @@ export function FloatingNumbers({ items }: { items: FloatingItem[] }) {
         {items.map(item => {
           const text =
             item.value > 0
-              ? `${item.label} +${item.value}`
-              : `${item.label} ${item.value}`;
+              ? `${item.label} +${fmtNum(item.value)}`
+              : `${item.label} ${fmtNum(item.value)}`;
           return (
             <motion.div
               key={item.id}

@@ -3,6 +3,7 @@ import { Calendar } from 'lucide-react';
 import type { GameState } from '../../types/index';
 import { weatherDescription } from '../../engine/weatherSystem';
 import { ownerSatisfactionLabel } from '../../engine/ownerSystem';
+import { fmtNum } from '../../utils/format';
 
 export interface PaperReviewDetail {
   submitted: number;
@@ -59,7 +60,7 @@ export function QuarterSummaryModal({
             <p className="text-sm text-slate-900 dark:text-gray-100 leading-relaxed">{weatherDescription(p.weather)}</p>
             <p className="text-xs text-slate-700 dark:text-gray-300 leading-relaxed border-t border-slate-200/80 dark:border-gray-700 pt-2">
               <span className="font-semibold text-slate-800 dark:text-gray-200">甲方满意度</span>{' '}
-              <span className="font-mono tabular-nums">{p.ownerSatisfaction}</span>/100 —{' '}
+              <span className="font-mono tabular-nums">{fmtNum(p.ownerSatisfaction)}</span>/100 —{' '}
               {ownerSatisfactionLabel(p.ownerSatisfaction)}
             </p>
           </div>

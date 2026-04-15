@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import type { LucideIcon } from 'lucide-react';
+import { fmtNum } from '../../utils/format';
 
 export interface StatBarProps {
   icon: LucideIcon;
@@ -26,7 +27,7 @@ export function StatBar({
           <Icon size={10} /> {label}
         </span>
         <span>
-          {Math.round(value)}
+          {fmtNum(value)}
           {suffix}/{max}
           {suffix}
         </span>
